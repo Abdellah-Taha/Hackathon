@@ -1,0 +1,8 @@
+.ms { font-family:"Material Symbols Outlined"; font-weight:400; font-style:normal; display:inline-block; vertical-align:middle; line-height:1; font-variation-settings:'FILL' 0,'wght' 400,'GRAD' 0,'opsz' 24; }
+.ms.fill { font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24; }
+.card { background:#fff; border:1px solid rgb(191 202 186 / .4); border-radius:.75rem; box-shadow:0 2px 12px -2px rgba(28,32,26,.05),0 1px 4px -1px rgba(28,32,26,.02); }
+.beam { background:conic-gradient(from 0deg at 50% 50%, rgba(46,125,50,.45) 0deg, rgba(46,125,50,.1) 45deg, transparent 75deg, transparent 360deg); animation:spin 2.6s linear infinite; }
+@keyframes spin { to { transform:rotate(360deg); } }
+:focus-visible { outline:2px solid #2e7d32; outline-offset:2px; }
+.view[hidden] { display:none; }
+@media (prefers-reduced-motion:reduce) { .beam, .animate-ping, .animate-pulse { animation:none !important; } }
