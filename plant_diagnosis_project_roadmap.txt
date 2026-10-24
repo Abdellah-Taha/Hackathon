@@ -1,0 +1,136 @@
+                                 PLANTCARE AI
+                   Project Roadmap & Team Execution Plan
+          A hackathon-ready plant image diagnosis and care assistant
+PROJECT GOAL
+Turn a plant photo into an understandable, evidence-aware report: identify likely visible problems, explain confidence and uncertainty, and give practical next steps. AI should do more than generate text -- it should interpret visual evidence and turn it into a structured, useful diagnosis.
+                Team of 4  |  2 AI / backend  |  2 web frontend
+1. Product definition
+Build a web application where a user uploads a plant photo and receives a concise plant-health report. The first version should focus on a narrow, reliable workflow rather than trying to solve every agricultural problem.Core user journey
+User uploads a clear image of a leaf or whole plant.
+The app asks for optional context: plant name (if known), location/region, growth stage, and symptoms noticed.
+The AI analyzes visible evidence and returns a structured result: likely issue, severity estimate, confidence, evidence, and recommended next steps.
+The page presents the result as a readable report, including limitations and when to seek expert help.
+The user can optionally ask a follow-up question about the report.
+What the AI must actually do
+Do not make the AI merely rewrite a template. Its core role is to inspect the image (using a vision-capable model or a dedicated plant-disease classifier), extract visual observations, compare plausible explanations, and produce a schema-validated report. The text model should explain the findings and recommendations; it should not invent a diagnosis when the image is ambiguous.MVP scope: must-have vs. later
+MVP  --  build now
+Stretch  --  only if stable
+Later  --  after hackathon
+Image upload and preview
+Plant species suggestion
+User accounts and history
+Visual symptom analysis
+Follow-up chat grounded in report
+Community / expert marketplace
+Structured health report
+Basic seasonal context
+Multi-image tracking over time
+Confidence + uncertainty
+Weather forecast integration
+Offline mobile app
+Care actions and warning signs
+Report export / PDF
+Large crop-specific knowledge base
+2. Recommended technical approach
+AI pipeline
+1. Input validation: Check file type, size, image readability, and whether the photo plausibly contains a plant. Return a friendly error if not.
+2. Visual analysis: Use a vision-capable model or a plant-disease image classifier. Ask for observable symptoms first (spots, yellowing, wilting, mildew-like growth, pest traces), not an immediate confident disease label.
+3. Diagnosis hypothesis: Produce up to 1 - 3 plausible explanations with confidence/uncertainty and the visual evidence supporting each. Distinguish visible symptoms from inferred causes.
+4. Context enrichment: Use user-provided plant type, season, region, and later weather data as context -- not as proof of disease.
+5. Recommendation generation: Generate prioritized actions: immediate low-risk steps, what to monitor, what additional photo/context would help, and when expert advice is appropriate.
+6. Structured output + validation: Return JSON that conforms to a fixed schema. Validate required fields, ranges, and allowed values before sending it to the frontend.
+Important design choice: vision model vs. classifier
+For a short hackathon, start with a vision-capable model API if one is available to the team and permitted by the event. It is usually the fastest route to an end-to-end demo. A dedicated classifier trained or fine-tuned on a known dataset can be more constrained and measurable, but adds dataset, preprocessing, and evaluation work. Avoid building a custom model from scratch during the event. If using an LLM vision API, verify image support, cost/rate limits, and whether its license/terms fit the event.Suggested report schema
+{
+  "plant_name": "unknown or best-supported identification",
+  "overall_status": "healthy | monitor | concern | urgent",
+  "observations": [
+    {"symptom": "yellowing near leaf edge", "location": "lower leaf", "evidence": "visible in the uploaded image"}
+  ],
+  "possible_causes": [
+    {"name": "possible nutrient stress", "confidence": "low | medium | high", "reason": "..."}
+  ],
+  "severity": "low | moderate | high | uncertain",
+  "recommended_actions": [
+    {"priority": 1, "action": "...", "reason": "..."}
+  ],
+  "seasonal_context": "...",
+  "what_to_monitor": ["..."],
+  "limitations": ["A single image cannot confirm ..."],
+  "follow_up_questions": ["..."]
+}3. Seasonality and weather: make them useful, not decorative
+A season label alone is weak advice. Seasonal guidance should depend on the plant type and the user's region, and should be presented as general context. For a later weather feature, request the user's location (or permission to use approximate location), call a weather API, and feed only relevant values into the recommendation step.Weather signals that can change advice
+Recent and forecast rainfall: watering advice and risk of prolonged leaf wetness.
+Temperature highs/lows: heat or cold stress risk.
+Humidity and humidity-related conditions: potential fungal pressure, without claiming disease is confirmed.
+Wind and extreme weather: plant protection and timing of outdoor care.
+For the hackathon MVP, seasonality can be a short, clearly labeled context section based on plant type and user-entered region. Do not fabricate current weather or claim location-specific accuracy without an actual API response.4. Work split for four teammates
+Owner
+Main responsibility
+Concrete deliverables
+AI 1  --  Vision & diagnosis
+Image analysis and symptom extraction
+Model/API selection; prompts or classifier; test images; output with observations, candidate causes, uncertainty.
+AI 2  --  Orchestration & backend
+API contract, validation, care recommendations
+Backend endpoint; JSON schema validation; safe recommendation logic; error handling; sample responses.
+Web 1  --  Upload & UX
+User-facing flow and upload experience
+Landing/upload page; image preview; optional context form; loading/error states; responsive layout.
+Web 2  --  Report & integration
+Report UI and API integration
+Health report cards; confidence/limitations display; API wiring; demo polish; end-to-end testing.
+Working agreement
+Agree on the request/response contract before building separate components.
+AI teammates expose a stable mock endpoint or JSON fixture early; web teammates build against it before the model is finished.
+Use one shared repository, one main branch policy, and short feature branches.
+Assign one person to own integration and the final demo flow; this should not become an unowned task.
+Do not wait for the AI to be perfect before testing the full product.
+5. Suggested API contract
+Endpoint: POST /api/diagnoseRequest: multipart/form-data with image plus optional plant_name, region, growth_stage, and user_observed_symptoms.Response: JSON matching the report schema above. Return clear error responses for invalid images, unsupported formats, model/API failures, and rate limits.Keep provider-specific model code behind a small interface so the team can switch models without rewriting the frontend.Definition of done for integration
+The frontend can upload an image and receive a real backend response.
+The report renders all fields without depending on hard-coded demo text.
+Missing or uncertain information is handled explicitly.
+Loading, failure, invalid-image, and retry states work.
+At least five varied test photos have been tried, including a healthy plant, visible symptoms, a poor-quality image, and a non-plant image.
+6. Execution roadmap
+Phase
+AI pair
+Web pair
+Exit criterion
+Phase 0  --  Align (first 30 - 45 min)
+Choose model approach; define schema and uncertainty rules.
+Agree on page flow and report layout; create repo/app skeleton.
+One agreed contract and a clear MVP.
+Phase 1  --  Skeleton (next 45 - 60 min)
+Create /diagnose endpoint with mocked JSON; then connect model call.
+Build upload form, loading state, and report using mock data.
+Frontend renders a complete mock report.
+Phase 2  --  Core AI (next 1 - 2 h)
+Implement image analysis, structured output, validation, and failure handling.
+Connect real endpoint; handle loading, errors, and missing fields.
+One image flows end-to-end through real AI.
+Phase 3  --  Quality (next 1 h)
+Test varied images; tune prompts; prevent unsupported certainty and risky advice.
+Improve readability, mobile layout, image preview, and error states.
+Demo is stable on several test cases.
+Phase 4  --  Polish & pitch (final 45 - 60 min)
+Prepare one strong example and explain AI architecture/limits.
+Polish visual hierarchy; ensure no dead buttons; rehearse demo.
+Reliable 2 - 3 minute demo and clear problem/impact pitch.
+7. Quality, safety, and credibility
+Use wording such as "possible cause" rather than presenting a photo-based guess as a confirmed diagnosis.
+Show what the model actually observed in the image; this makes the AI role visible and the output easier to trust.
+If confidence is low or image quality is poor, ask for another photo or more context instead of forcing an answer.
+Avoid recommending pesticides, chemical concentrations, or irreversible actions based only on a photo. Prefer low-risk steps and suggest local expert advice when needed.
+Do not claim that weather caused a disease. Explain weather as a risk factor or context only.
+Protect uploaded images: avoid retaining them by default, and explain any storage or external model processing.
+8. Demo script and judging narrative
+Problem: plant owners notice symptoms but do not know what they mean or what to do next.
+Action: upload a plant photo and optionally enter the plant type or region.
+AI moment: show visual observations, ranked possible causes, confidence/uncertainty, and reasoning grounded in the image.
+Useful outcome: show prioritized actions and what signs to monitor -- not just a disease name.
+Future direction: add local weather signals to adapt advice to upcoming heat, rain, or humidity conditions.
+9. Features to postpone
+Do not spend the hackathon building user authentication, a database of every plant species, a complex RAG pipeline, model fine-tuning, chat history, or a full weather dashboard. These features can be valuable later, but they distract from proving the core experience: photo --> visual evidence --> plausible assessment --> actionable care report.10. Final checklist
+☐ The team can explain exactly what the AI contributes.☐ A real uploaded image affects the report; it is not a static template.☐ The report separates observations, possible causes, confidence, and recommended actions.☐ The frontend and backend use one stable schema.☐ The app handles uncertainty and failures gracefully.☐ The team has rehearsed a short, reliable demo and can explain limitations honestly.
