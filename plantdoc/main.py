@@ -247,22 +247,19 @@ CRITICAL RULES:
 # 3b. FASTAPI BRIDGE (frontend <-> Gemini pipeline)
 # ============================================================================
 
-# Primary model: gemma-4-26b-a4b-it (Gemma 4 26B MoE — vision + PlantReport
-# structured output verified; no per-day free-tier cap like the Gemini models).
-# Quirk: it 500s on text-only calls but works with an image attached (we always
-# send an image). Fallbacks below cover 429 quota, 503 demand spikes, and
-# gemma's occasional 500 INTERNAL.
-MODEL_NAME = os.getenv("GEMINI_MODEL", "gemma-4-26b-a4b-it")
+# Primary model via Zenmux OpenAI-compatible proxy (https://api.zenmux.ai/v1).
+# Fallbacks cover 429 quota, 503 demand spikes, and 500 errors.
+MODEL_NAME = os.getenv("GEMINI_MODEL", "z-ai/glm-5.3-flash")
 MODEL_CANDIDATES = [
     MODEL_NAME,
     "gemma-4-26b-a4b-it",
-    "gemini-3.6-flash",
-    "gemini-3.5-flash",
-    "gemini-3.5-flash-lite",
-    "gemini-3.1-flash-lite",
-    "gemini-3.8-flash",
+    "gemini-2.5-flash",
+    "gemini-2.0-flash",
 ]
 MODEL_CANDIDATES = list(dict.fromkeys(MODEL_CANDIDATES))
+
+# Zenmux OpenAI-compatible endpoint
+ZENMUX_BASE_URL = os.getenv("ZENMUX_BASE_URL", "https://zenmux.ai/api/v1")
 
 app = FastAPI(
     title="PlantCare AI",
@@ -352,6 +349,15 @@ def report_to_frontend(report: PlantReport) -> dict:
     }
 
 
+def _pil_to_b64(img: Image.Image) -> str:
+    """Encode a PIL image as base64 JPEG string for OpenAI-compatible vision API."""
+    import base64
+    import io
+    buf = io.BytesIO()
+    img.save(buf, format="JPEG", quality=85)
+    return base64.b64encode(buf.getvalue()).decode("utf-8")
+
+
 def diagnose_plant_image(
     image_input: Union[str, Path, Image.Image],
     plant_hint: str = "",
@@ -362,9 +368,10 @@ def diagnose_plant_image(
     api_key: Optional[str] = None,
     model_name: Optional[str] = None,
 ) -> PlantReport:
-    """Core pipeline: image + context -> Gemini -> validated PlantReport.
+    """Core pipeline: image + context -> Zenmux (OpenAI-compatible) -> validated PlantReport.
 
-    Automatically iterates through candidate models if one encounters quota limits (429) or spikes (503).
+    Uses the OpenAI SDK pointed at Zenmux's proxy (https://api.zenmux.ai/v1).
+    Automatically iterates through candidate models on quota (429) or load (503) errors.
     """
     api_key = api_key or os.getenv("GEMINI_API_KEY")
     if not api_key:
@@ -373,6 +380,7 @@ def diagnose_plant_image(
         )
 
     image = preprocess_image(image_input)
+    b64_image = _pil_to_b64(image)
 
     context_lines = []
     if plant_hint:
@@ -390,50 +398,65 @@ def diagnose_plant_image(
     if context_lines:
         context_str = "\nADDITIONAL USER CONTEXT:\n" + "\n".join(context_lines)
 
+    schema_json = json.dumps(PlantReport.model_json_schema(), indent=2)
     user_prompt = f"""{PROMPT_SYSTEM}
 {context_str}
 
-Analyze this plant photo and return a structured report adhering strictly to the schema."""
+Analyze this plant photo and return ONLY a valid JSON object (no markdown, no extra text)
+that strictly conforms to this JSON schema:
+{schema_json}"""
 
-    # Lazy import so the module (and mock mode/CLI) work without google-genai
+    # Lazy import — keeps mock/CLI working even if openai is not installed
     try:
-        from google import genai
-        from google.genai import types
+        from openai import OpenAI
     except ImportError:
         raise ImportError(
-            "The 'google-genai' library is required. Install it using:\n"
-            "python -m pip install google-genai"
+            "The 'openai' library is required for the Zenmux proxy. Install it:\n"
+            "python -m pip install openai"
         )
 
-    client = genai.Client(api_key=api_key)
-    config = types.GenerateContentConfig(
-        response_mime_type="application/json",
-        response_schema=PlantReport,
-        temperature=0.2,  # Low temperature for objective diagnosis
-    )
+    client = OpenAI(api_key=api_key, base_url=ZENMUX_BASE_URL)
 
     models_to_try = [model_name] if model_name else list(MODEL_CANDIDATES)
     last_error = None
 
     for m in models_to_try:
         try:
-            response = client.models.generate_content(
+            response = client.chat.completions.create(
                 model=m,
-                contents=[image, user_prompt],
-                config=config,
+                temperature=0.2,
+                messages=[
+                    {
+                        "role": "user",
+                        "content": [
+                            {
+                                "type": "image_url",
+                                "image_url": {
+                                    "url": f"data:image/jpeg;base64,{b64_image}"
+                                },
+                            },
+                            {"type": "text", "text": user_prompt},
+                        ],
+                    }
+                ],
             )
-            if not response.text:
+            raw = response.choices[0].message.content
+            if not raw:
                 raise RuntimeError(f"Model {m} returned an empty response.")
-            return PlantReport.model_validate_json(response.text)
+            # Strip markdown code fences if the model wraps the JSON
+            raw = raw.strip()
+            if raw.startswith("```"):
+                raw = re.sub(r"^```[a-zA-Z]*\n?", "", raw)
+                raw = re.sub(r"\n?```$", "", raw.strip())
+            return PlantReport.model_validate_json(raw)
         except Exception as exc:
             last_error = exc
             err_str = str(exc)
-            # If rate limit (429), high demand (503), or gemma's sporadic
-            # internal error (500), try the next candidate model
+            # Retry on rate-limit, high-demand, or transient server errors
             if ("429" in err_str or "503" in err_str or "500" in err_str
                     or "RESOURCE_EXHAUSTED" in err_str or "UNAVAILABLE" in err_str
-                    or "INTERNAL" in err_str):
-                print(f"Warning: Model {m} hit rate limit / busy ({err_str[:60]}), trying next candidate model...")
+                    or "INTERNAL" in err_str or "rate_limit" in err_str.lower()):
+                print(f"Warning: Model {m} hit rate limit / busy ({err_str[:80]}), trying next...")
                 continue
             raise
 
