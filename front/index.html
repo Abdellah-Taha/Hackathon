@@ -12,147 +12,276 @@
 <script src="tailwind-config.js"></script>
 <link rel="stylesheet" href="styles.css">
 </head>
-<body class="bg-background text-on-surface font-sans antialiased min-h-screen flex flex-col selection:bg-secondary-container">
+<body class="bg-background text-on-surface font-body-md antialiased min-h-screen flex flex-col selection:bg-secondary-container selection:text-on-secondary-fixed">
+<header class="w-full bg-surface-container-lowest border-b border-outline-variant/30 shadow-sm sticky top-0 z-40">
+<div class="w-full max-w-5xl mx-auto px-margin-desktop flex items-center justify-between h-16">
+<a href="#" id="brand" class="flex items-center gap-space-md">
+<div class="w-9 h-9 rounded-xl bg-surface-container-low flex items-center justify-center text-primary border border-outline-variant/30"><span class="material-symbols-outlined fill">eco</span></div>
+<span class="text-headline-sm font-headline-sm font-bold text-primary tracking-tight">PlantCare AI</span></a>
+<nav class="hidden md:flex items-center gap-6"><a id="nav-diagnose" href="#" class="text-primary font-label-lg text-label-lg border-b-2 border-primary pb-1">Diagnose</a></nav>
+<button id="scan-btn" type="button" class="flex items-center gap-2 bg-primary-container text-on-primary hover:bg-primary transition-colors px-4 py-2 rounded-xl text-label-lg font-label-lg shadow-sm"><span class="material-symbols-outlined text-[18px]">photo_camera</span><span>Scan Plant</span></button>
+</div></header>
+<main class="flex-1 w-full max-w-5xl mx-auto px-4 md:px-margin-desktop py-6 md:py-8">
+<!-- VIEW 1: UPLOAD -->
+<section id="view-upload" class="view">
 
-<header class="sticky top-0 z-40 bg-surface-container-lowest border-b border-outline-variant/30 shadow-sm">
-  <div class="max-w-5xl mx-auto px-4 md:px-8 h-16 flex items-center justify-between">
-    <a href="#" id="brand" class="flex items-center gap-2">
-      <span class="ms fill text-primary text-[28px]">eco</span>
-      <span class="text-headline-sm font-bold text-primary tracking-tight">PlantCare AI</span>
-    </a>
-    <nav class="hidden md:flex" aria-label="Main">
-      <a href="#" id="nav-diagnose" class="text-label-lg text-primary border-b-2 border-primary pb-1">Diagnose</a>
-    </nav>
-    <div class="flex items-center gap-2">
-      <button id="scan-btn" type="button" class="hidden sm:inline-flex items-center gap-1.5 bg-primary hover:bg-primary-container text-on-primary text-label-lg px-4 py-2 rounded-xl transition-colors">
-        <span class="ms text-[18px]">photo_camera</span>Scan plant
-      </button>
-      <button type="button" aria-label="Notifications" class="p-2 text-on-surface-variant hover:bg-surface-container-low rounded-xl"><span class="ms text-[22px]">notifications</span></button>
-      <button type="button" aria-label="Account" class="p-2 text-on-surface-variant hover:bg-surface-container-low rounded-xl"><span class="ms text-[22px]">account_circle</span></button>
-    </div>
-  </div>
-</header>
+<!-- Hero / Header Section -->
+<section class="mb-8 text-center sm:text-left flex flex-col items-center sm:items-start">
+<div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-surface-container-low text-primary border border-outline-variant/30 mb-3.5">
+<span class="material-symbols-outlined text-[16px] text-primary" data-icon="auto_awesome">auto_awesome</span>
+<span class="text-label-sm font-label-sm uppercase tracking-wider font-semibold">Instant Leaf Diagnosis v3.4</span>
+</div>
+<h1 class="text-headline-lg font-headline-lg text-on-surface tracking-tight mb-2">
+        What's wrong with your plant?
+      </h1>
+<p class="text-body-lg font-body-lg text-on-surface-variant max-w-2xl">
+        Upload a clear photo of the affected foliage or stem and receive an evidence-based diagnosis, severity rating, and verified organic recovery plan in seconds.
+      </p>
+</section>
+<!-- 2-Column Grid Layout: Upload Zone (Left) & Metadata Panel (Right) -->
+<div class="gap-space-xl items-start max-w-2xl mx-auto">
+<!-- Left Column: Primary Diagnosis Upload Area (7 cols) -->
+<section class="flex flex-col gap-space-lg w-full">
+<!-- Large Drag & Drop Surface Card -->
+<div id="dropzone" class="bg-surface-container-lowest border-2 border-dashed border-outline-variant/80 rounded-xl p-8 flex flex-col items-center justify-center text-center custom-botanical-shadow hover:border-primary-container transition-all group relative cursor-pointer">
+<input accept="image/png, image/jpeg, image/heic" class="sr-only" id="file" type="file">
+<div class="w-16 h-16 rounded-full bg-surface-container-low flex items-center justify-center mb-4 group-hover:scale-105 transition-transform duration-200">
+<span class="material-symbols-outlined text-primary text-[32px]" data-icon="center_focus_strong">center_focus_strong</span>
+</div>
+<h3 class="text-headline-sm font-headline-sm text-on-surface mb-1">
+            Drag &amp; drop your leaf photo here, or browse
+          </h3>
+<p class="text-body-md font-body-md text-on-surface-variant mb-6">
+            Supports high-resolution leaves, stems, or soil bases
+          </p>
+<label class="inline-flex items-center gap-2 bg-primary-container hover:bg-primary text-on-primary text-label-lg font-label-lg px-6 py-3 rounded-xl cursor-pointer transition-all shadow-sm active:scale-95" for="file">
+<span class="material-symbols-outlined text-[20px]" data-icon="upload_file">upload_file</span>
+<span class="">Upload photo</span>
+</label>
+<div class="mt-6 flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-body-sm font-body-sm text-outline">
+<span class="flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]" data-icon="check_circle">check_circle</span>
+              JPG, PNG, HEIC up to 20MB
+            </span>
+<span class="">•</span>
+<span class="flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]" data-icon="lock">lock</span>
+              Private &amp; Secure Analysis
+            </span>
+</div>
+<!-- Sample Link for quick testing -->
+<div class="mt-4 pt-4 border-t border-outline-variant/30 w-full flex items-center justify-center">
+<button id="sample" class="text-primary hover:text-primary-container font-label-md text-label-md underline underline-offset-4 flex items-center gap-1 transition-colors" type="button">
+<span class="material-symbols-outlined text-[16px]" data-icon="experiment">experiment</span>
+              Looking to test? Use a sample leaf photo
+            </button>
+</div>
+</div>
+<div id="preview" class="bg-surface-container-lowest border border-outline-variant/40 rounded-xl p-space-lg custom-botanical-shadow flex items-center justify-between gap-space-md" hidden>
+<div class="flex items-center gap-space-md min-w-0">
+<div class="w-16 h-16 rounded-lg overflow-hidden bg-surface-container shrink-0 border border-outline-variant/50 relative flex items-center justify-center">
+<img id="preview-img" alt="Your uploaded plant photo" class="w-full h-full object-cover">
+<span id="preview-fallback" class="material-symbols-outlined fill text-primary text-[28px]" hidden>eco</span>
+<div class="absolute bottom-1 right-1 bg-surface-container-lowest/90 rounded p-0.5 shadow-xs"><span class="material-symbols-outlined text-[12px] text-primary">check</span></div>
+</div>
+<div class="min-w-0">
+<div class="flex items-center gap-2"><p id="preview-name" class="text-label-lg font-label-lg text-on-surface truncate"></p>
+<span class="inline-flex items-center px-2 py-0.5 rounded-full text-label-sm font-label-sm bg-surface-container-low text-primary font-semibold border border-outline-variant/30">Ready</span></div>
+<p id="preview-meta" class="text-body-sm font-body-sm text-on-surface-variant mt-0.5"></p>
+<div class="flex items-center gap-2 mt-1 text-label-sm font-label-sm text-primary"><span class="material-symbols-outlined text-[14px]">verified</span><span id="preview-note"></span></div>
+</div></div>
+<div class="flex items-center gap-1 shrink-0">
+<button id="view-full" class="p-2 text-on-surface-variant hover:text-on-surface rounded-lg hover:bg-surface-container-low transition-colors" title="View Full Image" aria-label="View full image" type="button"><span class="material-symbols-outlined">visibility</span></button>
+<button id="remove" class="p-2 text-on-surface-variant hover:text-error rounded-lg hover:bg-error-container/40 transition-colors" title="Remove Photo" aria-label="Remove photo" type="button"><span class="material-symbols-outlined">delete</span></button>
+</div></div>
+<p id="file-error" class="text-body-md text-error" role="alert" hidden></p>
+</section>
+<!-- Right Column: Optional Plant Details Panel (5 cols) -->
 
-<main class="flex-1 w-full max-w-5xl mx-auto px-4 md:px-8 py-8">
+</div>
+<!-- Bottom CTA Diagnostic Submission Banner -->
+<section class="mt-10 bg-surface-container-lowest border border-outline-variant/50 rounded-xl p-6 sm:p-8 custom-elevated-shadow flex flex-col sm:flex-row items-center justify-between gap-6">
+<div class="flex items-center gap-4 text-center sm:text-left">
+<div class="w-12 h-12 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0 hidden sm:flex">
+<span class="material-symbols-outlined text-[28px]" data-icon="search_insights">search_insights</span>
+</div>
+<div>
+<h4 class="text-headline-sm font-headline-sm text-on-surface">Ready to examine foliage?</h4>
+<p class="text-body-md font-body-md text-on-surface-variant mt-0.5">
+            Diagnostic models will process pathogen fingerprints across 1,200+ horticultural categories.
+          </p>
+</div>
+</div>
+<div class="flex flex-col sm:items-end w-full sm:w-auto shrink-0">
+<button id="diagnose" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-primary hover:bg-primary-container text-on-primary font-label-lg text-label-lg px-8 py-3.5 rounded-xl shadow-md hover:shadow-lg transition-all scale-[1.00] hover:scale-[1.01] active:scale-95" type="button">
+<span class="">Diagnose my plant</span>
+<span class="material-symbols-outlined text-[20px]" data-icon="arrow_forward">arrow_forward</span>
+</button>
+<span class="text-label-sm font-label-sm text-outline mt-2 text-center sm:text-right flex items-center justify-center sm:justify-end gap-1">
+<span class="material-symbols-outlined text-[13px] text-primary" data-icon="verified_user">verified_user</span>
+          Powered by Botanical AI &amp; Reviewed against 1,200+ plant disease models
+        </span>
+</div>
+</section>
+<p class="mt-4 text-center text-body-sm text-outline">Already have a result file?
+<label for="json-file" class="text-primary underline underline-offset-4 cursor-pointer hover:text-primary-container">Load result.json</label>
+<input id="json-file" type="file" accept="application/json,.json" class="sr-only"></p>
+</section>
+<!-- VIEW 2: ANALYZING -->
+<section id="view-analyzing" class="view" hidden aria-live="polite">
 
-  <!-- VIEW 1: UPLOAD -->
-  <section id="view-upload" class="view">
-    <div class="mb-8">
-      <h1 class="text-headline-lg mb-2">What’s wrong with your plant?</h1>
-      <p class="text-body-lg text-on-surface-variant max-w-2xl">Upload a clear photo of the affected leaf or stem. You’ll get a likely cause, how serious it is, and an organic recovery plan.</p>
-    </div>
+<!-- Status Ticker & Category Breadcrumb -->
+<div class="flex items-center justify-between mb-space-md">
+<div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-surface-container-low border border-outline-variant/30">
+<span class="relative flex h-2 w-2">
+<span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
+<span class="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
+</span>
+<span class="font-label-md text-label-md text-primary tracking-wide uppercase">Multi-Spectral Sensor Array</span>
+</div>
+<div class="text-on-surface-variant font-label-md text-label-md flex items-center gap-1">
+<span class="">Session ID: <span id="session">#PCA-0000-FL</span></span>
+</div>
+</div>
+<!-- Central Analysis Master Card -->
+<div class="bg-surface-container-lowest border border-outline-variant/40 rounded-xl shadow-[0_2px_12px_-3px_rgba(28,32,26,0.06),0_1px_4px_-1px_rgba(28,32,26,0.03)] overflow-hidden">
+<div class="p-6 md:p-8 gap-8 items-center flex flex-col">
+<!-- Left Column: Circular Botanical Radar Scanner & Metrics -->
+<div class="flex flex-col items-center text-center mx-auto w-full">
+<!-- Multispectral Tag -->
+<div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-surface-container-low text-primary font-label-sm text-label-sm mb-4 border border-outline-variant/40">
+<span class="material-symbols-outlined text-[15px]" style="font-variation-settings: &quot;FILL&quot; 1;">radar</span>
+<span class="">MULTISPECTRAL AI ACTIVE</span>
+</div>
+<!-- Circular Radar Scanner Graphic -->
+<div class="relative w-64 h-64 sm:w-72 sm:h-72 rounded-full bg-surface-container-low flex items-center justify-center p-3 mb-6 shadow-inner border border-outline-variant/30">
+<!-- Concentric Botanical Radar Grid -->
+<div class="absolute inset-4 rounded-full border border-primary/20 pulse-layer"></div>
+<div class="absolute inset-10 rounded-full border border-dashed border-primary/25"></div>
+<div class="absolute inset-16 rounded-full border border-primary/15"></div>
+<div class="absolute inset-24 rounded-full border border-primary/20"></div>
+<!-- Coordinate Crosshairs & Targeting Reticles -->
+<div class="absolute inset-x-3 top-1/2 -translate-y-1/2 h-[1px] bg-primary/25 pointer-events-none"></div>
+<div class="absolute inset-y-3 left-1/2 -translate-x-1/2 w-[1px] bg-primary/25 pointer-events-none"></div>
+<!-- Reticle Corner Markers -->
+<div class="absolute top-7 left-7 w-2 h-2 border-t-2 border-l-2 border-primary"></div>
+<div class="absolute top-7 right-7 w-2 h-2 border-t-2 border-r-2 border-primary"></div>
+<div class="absolute bottom-7 left-7 w-2 h-2 border-b-2 border-l-2 border-primary"></div>
+<div class="absolute bottom-7 right-7 w-2 h-2 border-b-2 border-r-2 border-primary"></div>
+<!-- Rotating Scanning Beam Sweep -->
+<div class="absolute inset-4 rounded-full overflow-hidden pointer-events-none">
+<div class="w-full h-full radar-beam origin-center" style="background: conic-gradient(from 0deg at 50% 50%, rgba(46, 125, 50, 0.45) 0deg, rgba(46, 125, 50, 0.1) 45deg, transparent 75deg, transparent 360deg);"></div>
+</div>
+<!-- Detected Hotspot Markers on Leaf -->
+<div class="absolute top-16 right-14 flex items-center justify-center">
+<span class="w-2.5 h-2.5 rounded-full bg-error ring-4 ring-error/20 animate-pulse"></span>
+<span class="absolute -top-5 text-[10px] font-label-sm text-error bg-surface-container-lowest px-1 rounded shadow-xs border border-error/20">Chlorosis #01</span>
+</div>
+<div class="absolute bottom-14 left-16 flex items-center justify-center">
+<span class="w-2 h-2 rounded-full bg-tertiary ring-4 ring-tertiary/20"></span>
+<span class="absolute -bottom-5 text-[10px] font-label-sm text-tertiary bg-surface-container-lowest px-1 rounded shadow-xs border border-tertiary/20">Margin Burn</span>
+</div>
+<!-- Central Botanical Core Glyph Container -->
+<div class="relative z-10 w-24 h-24 rounded-full bg-surface-container-lowest border-2 border-primary-container shadow-md flex flex-col items-center justify-center text-primary">
+<span class="material-symbols-outlined text-[36px]" style="font-variation-settings: &quot;FILL&quot; 1;">psychiatry</span>
+<span class="text-[10px] font-label-sm font-semibold tracking-wider text-on-surface-variant uppercase mt-0.5">Leaf</span>
+</div>
+</div>
+<!-- Hero Headline & Dynamic Scan Subtext -->
+<h1 class="text-headline-md sm:text-headline-lg font-headline-lg text-on-surface mb-1 tracking-tight">
+            Analyzing your plant...
+          </h1>
+<p id="status" class="text-primary font-body-md italic mb-6">
+            Examining leaf patterns &amp; chlorosis…
+          </p>
+<!-- Neural Model Confidence & Progress Meter -->
+<div class="w-full max-w-sm bg-surface-container-low p-4 rounded-xl border border-outline-variant/30">
+<div class="flex items-center justify-between text-label-md font-label-md mb-2">
+<span class="text-on-surface-variant flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[16px] text-primary" style="font-variation-settings: &quot;FILL&quot; 1;">neurology</span>
+                Neural Model Confidence
+              </span>
+<span id="pct" class="text-primary font-bold">0%</span>
+</div>
+<!-- Dynamic Linear Progress Bar -->
+<div class="w-full h-2.5 bg-surface-container-high rounded-full overflow-hidden p-0.5">
+<div id="bar" class="h-full bg-primary-container rounded-full transition-all duration-700 ease-out" style="width: 0%;"></div>
+</div>
+<!-- Telemetry Meta Badges -->
+<div class="flex items-center justify-between text-body-sm font-body-sm text-on-surface-variant mt-3 pt-2 border-t border-outline-variant/20">
+<span class="flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">timer</span>
+                Estimated time: ~4 seconds
+              </span>
+<span class="flex items-center gap-1 font-label-sm">
+<span class="material-symbols-outlined text-[14px]">hd</span>
+                <span id="res">Resolution</span>
+              </span>
+</div>
+</div>
+</div>
+<!-- Right Column: Diagnostic Sequence Checklist & Wisdom Card -->
 
-    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-      <div class="lg:col-span-7 flex flex-col gap-4">
-        <label id="dropzone" for="file" class="card border-2 border-dashed border-outline-variant p-8 flex flex-col items-center text-center cursor-pointer hover:border-primary-container transition-colors">
-          <input id="file" type="file" accept="image/png,image/jpeg,image/heic" class="sr-only">
-          <span class="w-16 h-16 rounded-full bg-surface-container-low flex items-center justify-center mb-4"><span class="ms text-primary text-[32px]">center_focus_strong</span></span>
-          <span class="text-headline-sm mb-1">Drag and drop a leaf photo, or browse</span>
-          <span class="text-body-md text-on-surface-variant mb-5">Leaves, stems or soil surface</span>
-          <span class="inline-flex items-center gap-2 bg-primary-container text-on-primary text-label-lg px-6 py-3 rounded-xl"><span class="ms text-[20px]">upload_file</span>Upload photo</span>
-          <span class="mt-5 text-body-sm text-outline flex items-center gap-1"><span class="ms text-[14px]">lock</span>JPG, PNG or HEIC up to 20 MB. Your photo stays private.</span>
-        </label>
+</div>
+<!-- Bottom Card Security / Engine Telemetry Ribbon -->
+<div class="bg-surface-container-low/80 px-6 md:px-8 py-3 border-t border-outline-variant/30 flex flex-wrap items-center justify-between gap-2 text-body-sm font-body-sm text-on-surface-variant flex-col">
+<div class="flex items-center gap-2 mx-auto w-full">
+<span class="material-symbols-outlined text-[16px] text-primary" style="font-variation-settings: &quot;FILL&quot; 1;">verified_user</span>
+<span class="">Secure local image telemetry • PlantCare AI v3.2</span>
+</div>
+<div class="flex items-center gap-4 text-label-sm font-label-sm mx-auto w-full">
+<span class="inline-flex items-center gap-1">
+<span class="w-1.5 h-1.5 rounded-full bg-primary"></span>
+            Horticultural Engine v4.19
+          </span>
+<span class="text-outline-variant">•</span>
+<span class="">Latency: 41ms</span>
+</div>
+</div>
+</div>
+<!-- Quick Dismiss / Return Micro-action -->
+<div class="mt-4 flex items-center justify-center">
+<button id="cancel" class="inline-flex items-center gap-1.5 text-on-surface-variant hover:text-primary font-label-md text-label-md transition-colors py-1 px-3 rounded-lg hover:bg-surface-container-low" type="button">
+<span class="material-symbols-outlined text-[16px]">arrow_back</span>
+<span class="">Cancel analysis and re-upload photo</span>
+</button>
+</div>
 
-        <div id="preview" class="card p-4 flex items-center justify-between gap-3" hidden>
-          <div class="flex items-center gap-3 min-w-0">
-            <div class="w-16 h-16 rounded-lg overflow-hidden bg-surface-container shrink-0 border border-outline-variant/50 flex items-center justify-center">
-              <img id="preview-img" alt="Your uploaded plant photo" class="w-full h-full object-cover">
-              <span id="preview-fallback" class="ms fill text-primary text-[28px]" hidden>eco</span>
-            </div>
-            <div class="min-w-0">
-              <p id="preview-name" class="text-label-lg truncate"></p>
-              <p id="preview-meta" class="text-body-sm text-on-surface-variant"></p>
-              <p class="text-label-sm text-primary flex items-center gap-1 mt-1"><span class="ms fill text-[14px]">check_circle</span>Ready to diagnose</p>
-            </div>
-          </div>
-          <button id="remove" type="button" title="Remove photo" aria-label="Remove photo" class="p-2 text-on-surface-variant hover:text-error hover:bg-error-container/40 rounded-lg shrink-0"><span class="ms text-[20px]">delete</span></button>
-        </div>
-        <p id="file-error" class="text-body-md text-error" role="alert" hidden></p>
-      </div>
-
-      <div class="lg:col-span-5">
-        <form id="details" class="card p-6 flex flex-col gap-4" onsubmit="return false">
-          <div>
-            <h2 class="text-headline-sm">Plant details <span class="text-body-sm text-outline font-normal">(optional)</span></h2>
-            <p class="text-body-sm text-on-surface-variant">More detail makes the diagnosis more accurate.</p>
-          </div>
-          <div>
-            <label for="plant-name" class="block text-label-md mb-1.5">Plant name or variety</label>
-            <input id="plant-name" type="text" placeholder="e.g. Monstera, Pothos, Fiddle leaf fig" class="w-full h-12 px-3.5 border border-outline-variant rounded-xl text-body-md focus:border-primary-container focus:ring-2 focus:ring-primary-container/20">
-          </div>
-          <div>
-            <label for="climate" class="block text-label-md mb-1.5">Where does it grow?</label>
-            <select id="climate" class="w-full h-12 px-3.5 border border-outline-variant rounded-xl text-body-md focus:border-primary-container focus:ring-2 focus:ring-primary-container/20">
-              <option>Indoors, temperate and dry air</option><option>Indoors, warm and humid</option><option>Outdoor balcony or patio</option><option>Greenhouse</option><option>Hot, dry climate</option>
-            </select>
-          </div>
-          <div>
-            <label for="stage" class="block text-label-md mb-1.5">Growth stage</label>
-            <select id="stage" class="w-full h-12 px-3.5 border border-outline-variant rounded-xl text-body-md focus:border-primary-container focus:ring-2 focus:ring-primary-container/20">
-              <option>Mature (over 2 years)</option><option>Young (6–24 months)</option><option>Seedling or cutting</option><option>Repotted in the last 30 days</option>
-            </select>
-          </div>
-          <fieldset>
-            <legend class="text-label-md mb-2">Symptoms you’ve noticed</legend>
-            <div id="chips" class="flex flex-wrap gap-1.5 mb-2.5"></div>
-            <label for="notes" class="sr-only">Additional notes</label>
-            <textarea id="notes" rows="2" placeholder="Anything else? e.g. watered every 5 days, near a drafty window" class="w-full p-3 border border-outline-variant rounded-xl text-body-md resize-none focus:border-primary-container focus:ring-2 focus:ring-primary-container/20"></textarea>
-          </fieldset>
-        </form>
-      </div>
-    </div>
-
-    <div class="card mt-8 p-6 flex flex-col sm:flex-row items-center justify-between gap-4">
-      <div>
-        <h2 class="text-headline-sm">Ready when you are</h2>
-        <p class="text-body-md text-on-surface-variant">Organic fixes come first, before any synthetic treatment.</p>
-      </div>
-      <button id="diagnose" type="button" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-primary hover:bg-primary-container text-on-primary text-label-lg px-8 py-3.5 rounded-xl shadow-md transition-colors">
-        Diagnose my plant<span class="ms text-[20px]">arrow_forward</span>
-      </button>
-    </div>
-  </section>
-
-  <!-- VIEW 2: ANALYZING -->
-  <section id="view-analyzing" class="view max-w-xl mx-auto" hidden aria-live="polite">
-    <div class="card p-8 flex flex-col items-center text-center">
-      <div class="relative w-64 h-64 rounded-full bg-surface-container-low border border-outline-variant/30 flex items-center justify-center mb-6 overflow-hidden">
-        <div class="absolute inset-4 rounded-full border border-primary/20"></div>
-        <div class="absolute inset-12 rounded-full border border-dashed border-primary/25"></div>
-        <div class="absolute inset-4 rounded-full overflow-hidden"><div class="beam w-full h-full"></div></div>
-        <div class="relative z-10 w-24 h-24 rounded-full bg-white border-2 border-primary-container shadow-md flex items-center justify-center overflow-hidden">
-          <img id="scan-img" alt="" class="w-full h-full object-cover" hidden>
-          <span id="scan-icon" class="ms fill text-primary text-[40px]">psychiatry</span>
-        </div>
-      </div>
-      <h1 class="text-headline-md mb-1">Analyzing your plant…</h1>
-      <p id="status" class="text-body-md text-primary italic mb-6">Checking leaf color and patterns</p>
-      <div class="w-full max-w-sm bg-surface-container-low p-4 rounded-xl border border-outline-variant/30">
-        <div class="flex justify-between text-label-md mb-2"><span class="text-on-surface-variant">Progress</span><span id="pct" class="text-primary font-bold">0%</span></div>
-        <div class="h-2.5 bg-surface-container-high rounded-full overflow-hidden" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="bar-wrap">
-          <div id="bar" class="h-full bg-primary-container rounded-full transition-all duration-500" style="width:0%"></div>
-        </div>
-      </div>
-    </div>
-    <div class="mt-4 text-center">
-      <button id="cancel" type="button" class="inline-flex items-center gap-1.5 text-label-md text-on-surface-variant hover:text-primary hover:bg-surface-container-low py-1 px-3 rounded-lg"><span class="ms text-[16px]">arrow_back</span>Cancel and change photo</button>
-    </div>
-  </section>
-
-  <!-- VIEW 3: REPORT -->
-  <section id="view-report" class="view" hidden></section>
+</section>
+<!-- VIEW 3: REPORT (rendered by app.js from the JSON result) -->
+<section id="view-report" class="view" hidden></section>
 </main>
-
-<footer class="bg-surface-container-low border-t border-outline-variant/20 mt-12">
-  <div class="max-w-5xl mx-auto px-4 md:px-8 py-8 flex flex-col md:flex-row items-center justify-between gap-4 text-center md:text-left">
-    <p class="text-body-sm text-on-surface-variant"><span class="text-headline-sm font-bold text-primary mr-2">PlantCare AI</span>© 2026 PlantCare AI. Healthy plants, explained simply.</p>
-    <nav class="flex flex-wrap justify-center gap-x-5 gap-y-2 text-body-sm text-on-surface-variant" aria-label="Footer">
-      <a class="hover:text-primary" href="#privacy">Privacy policy</a><a class="hover:text-primary" href="#terms">Terms of service</a>
-      <a class="hover:text-primary" href="#database">Plant database</a><a class="hover:text-primary" href="#support">Contact support</a>
-    </nav>
-  </div>
+<footer class="w-full bg-surface-container-low dark:bg-inverse-surface border-t border-outline-variant/20 dark:border-outline-variant/10 mt-12">
+<div class="w-full max-w-5xl mx-auto px-margin-desktop py-8 flex flex-col md:flex-row items-center justify-between gap-space-md">
+<!-- Brand & Copyright -->
+<div class="flex flex-col sm:flex-row items-center gap-2 sm:gap-4 text-center sm:text-left">
+<span class="text-headline-sm font-headline-sm font-bold text-primary dark:text-inverse-primary tracking-tight">PlantCare AI</span>
+<span class="hidden sm:inline text-outline-variant">•</span>
+<p class="text-body-sm font-body-sm text-on-surface-variant dark:text-outline-variant">
+          © 2025 PlantCare AI. Cultivating healthy growth with intelligent botanical care.
+        </p>
+</div>
+<!-- Links Cluster -->
+<div class="flex flex-wrap items-center justify-center gap-x-6 gap-y-2">
+<a class="text-on-surface-variant dark:text-outline-variant hover:text-primary dark:hover:text-inverse-primary font-body-sm text-body-sm transition-colors" href="#privacy">
+          Privacy Policy
+        </a>
+<a class="text-on-surface-variant dark:text-outline-variant hover:text-primary dark:hover:text-inverse-primary font-body-sm text-body-sm transition-colors" href="#terms">
+          Terms of Service
+        </a>
+<a class="text-on-surface-variant dark:text-outline-variant hover:text-primary dark:hover:text-inverse-primary font-body-sm text-body-sm transition-colors" href="#database">
+          Plant Database
+        </a>
+<a class="text-on-surface-variant dark:text-outline-variant hover:text-primary dark:hover:text-inverse-primary font-body-sm text-body-sm transition-colors" href="#api">
+          Botanical API
+        </a>
+<a class="text-on-surface-variant dark:text-outline-variant hover:text-primary dark:hover:text-inverse-primary font-body-sm text-body-sm transition-colors" href="#support">
+          Contact Support
+        </a>
+</div>
+</div>
 </footer>
-
+<div id="toast" role="status" hidden class="fixed bottom-6 left-1/2 -translate-x-1/2 bg-inverse-surface text-inverse-on-surface text-body-md px-4 py-2.5 rounded-xl shadow-lg z-50"></div>
 <script src="app.js"></script>
 </body>
 </html>

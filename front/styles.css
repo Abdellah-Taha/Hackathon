@@ -1,8 +1,11 @@
-.ms { font-family:"Material Symbols Outlined"; font-weight:400; font-style:normal; display:inline-block; vertical-align:middle; line-height:1; font-variation-settings:'FILL' 0,'wght' 400,'GRAD' 0,'opsz' 24; }
-.ms.fill { font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24; }
-.card { background:#fff; border:1px solid rgb(191 202 186 / .4); border-radius:.75rem; box-shadow:0 2px 12px -2px rgba(28,32,26,.05),0 1px 4px -1px rgba(28,32,26,.02); }
-.beam { background:conic-gradient(from 0deg at 50% 50%, rgba(46,125,50,.45) 0deg, rgba(46,125,50,.1) 45deg, transparent 75deg, transparent 360deg); animation:spin 2.6s linear infinite; }
-@keyframes spin { to { transform:rotate(360deg); } }
-:focus-visible { outline:2px solid #2e7d32; outline-offset:2px; }
-.view[hidden] { display:none; }
-@media (prefers-reduced-motion:reduce) { .beam, .animate-ping, .animate-pulse { animation:none !important; } }
+[hidden] { display: none !important; }
+.material-symbols-outlined { font-family: 'Material Symbols Outlined'; font-weight: 400; font-style: normal; font-size: 20px; line-height: 1; display: inline-block; vertical-align: middle; white-space: nowrap; letter-spacing: normal; text-transform: none; direction: ltr; -webkit-font-smoothing: antialiased; font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+.material-symbols-outlined.fill { font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+.custom-botanical-shadow { box-shadow: 0 2px 12px -2px rgba(28,32,26,.05), 0 1px 4px -1px rgba(28,32,26,.02); }
+.custom-elevated-shadow { box-shadow: 0 12px 24px -6px rgba(28,32,26,.07), 0 4px 12px -2px rgba(28,32,26,.03); }
+@keyframes radar-sweep { to { transform: rotate(360deg); } }
+@keyframes pulse-ring { 0%,100% { opacity: .35; transform: scale(.97); } 50% { opacity: .8; transform: scale(1.02); } }
+.radar-beam { animation: radar-sweep 3.5s linear infinite; }
+.pulse-layer { animation: pulse-ring 4s ease-in-out infinite; }
+:focus-visible { outline: 2px solid #2e7d32; outline-offset: 2px; }
+@media (prefers-reduced-motion: reduce) { .radar-beam, .pulse-layer, .animate-ping, .animate-pulse { animation: none !important; } }
