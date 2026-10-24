@@ -16,11 +16,11 @@ uv run uvicorn plantdoc.main:app --reload      # http://127.0.0.1:8000
   optional `plantName`, `climate`, `stage`, `symptoms`, `notes`, `mock`)
 - Docs: `http://127.0.0.1:8000/docs`
 
-`.env` needs a `GEMINI_API_KEY`. Free tier allows ~20 requests/day per model.
-The backend automatically falls back across working flash models (`gemini-3.6-flash`,
-`gemini-3.5-flash`, `gemini-3.5-flash-lite`, `gemini-3.1-flash-lite`, `gemini-3.8-flash`).
-For UI work without burning quota, add form field `mock=true` (or set `PLANTDOC_MOCK=1`)
-to get a valid sample report with no AI call.
+`.env` needs a `GEMINI_API_KEY`. The primary model is `gemma-4-26b-a4b-it`
+(env: `GEMINI_MODEL`), with an automatic fallback chain to the gemini-3.x flash
+models on 429/503/500 errors. For UI work without burning quota, add form field
+`mock=true` (or set `PLANTDOC_MOCK=1`) to get a valid sample report with no AI
+call.
 
 ## CLI
 

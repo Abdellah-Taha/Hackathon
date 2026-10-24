@@ -247,11 +247,15 @@ CRITICAL RULES:
 # 3b. FASTAPI BRIDGE (frontend <-> Gemini pipeline)
 # ============================================================================
 
-# Model fallback chain: gemini-3.8-flash hit free-tier daily quota (20 req/day).
-# gemini-3.6-flash, gemini-3.5-flash, gemini-3.5-flash-lite, and gemini-3.1-flash-lite all have active quota.
-MODEL_NAME = os.getenv("GEMINI_MODEL", "gemini-3.6-flash")
+# Primary model: gemma-4-26b-a4b-it (Gemma 4 26B MoE — vision + PlantReport
+# structured output verified; no per-day free-tier cap like the Gemini models).
+# Quirk: it 500s on text-only calls but works with an image attached (we always
+# send an image). Fallbacks below cover 429 quota, 503 demand spikes, and
+# gemma's occasional 500 INTERNAL.
+MODEL_NAME = os.getenv("GEMINI_MODEL", "gemma-4-26b-a4b-it")
 MODEL_CANDIDATES = [
     MODEL_NAME,
+    "gemma-4-26b-a4b-it",
     "gemini-3.6-flash",
     "gemini-3.5-flash",
     "gemini-3.5-flash-lite",
@@ -278,27 +282,44 @@ SEVERITY_TO_REVERSIBILITY = {
 def report_to_frontend(report: PlantReport) -> dict:
     """Map our validated PlantReport to the JSON shape front/app.js renders.
 
-    front/app.js (renderReport) expects:
-      plant, commonName, family, status, certainty, severity, reversibility,
-      observations: [[title, detail], ...],
-      causes: [[title, pct, why, note], ...]   (pct = 0..100 int, ranked)
-      actions: [[title, detail], ...]          (first one = "Do this first")
-      monitor: [str, ...], disclaimer: str
+    front/app.js (validateResult + renderReport) expects:
+      plant: {name, commonName, family},          status: healthy|concern|critical,
+      certainty: 0-100, severity: str, reversibility: str,
+      observations: [{title, detail}], causes: [{name, confidence, description, note?}],
+      actions: [{title, detail}], monitor: [str], disclaimer: str
+    All arrays must be NON-EMPTY (validateResult rejects empty lists).
     """
     causes = [
-        [c.name, CONF_TO_PCT.get(c.confidence, 30), c.reason,
-         "Most likely driver of the observed symptoms" if i == 0 else ""]
+        {
+            "name": c.name,
+            "confidence": CONF_TO_PCT.get(c.confidence, 30),
+            "description": c.reason,
+            **({"note": "Most likely driver of the observed symptoms"} if i == 0 else {}),
+        }
         for i, c in enumerate(report.possible_causes)
-    ]
-    actions = [[a.action, a.reason] for a in
-               sorted(report.recommended_actions, key=lambda a: a.priority)]
-    observations = [[o.symptom, f"{o.location} — {o.evidence}"]
-                    for o in report.observations]
+    ] or [{"name": "Undetermined", "confidence": 20,
+           "description": "No plausible cause could be identified from this photo.",
+           "note": "Try a closer, well-lit photo of the affected area"}]
+    actions = [
+        {"title": a.action, "detail": a.reason}
+        for a in sorted(report.recommended_actions, key=lambda a: a.priority)
+    ] or [{"title": "Monitor the plant", "detail": "No intervention is required right now."}]
+    observations = [
+        {"title": o.symptom, "detail": f"{o.location} — {o.evidence}"}
+        for o in report.observations
+    ] or [{"title": "No clear symptoms", "detail": "Nothing conclusive is visible in this photo."}]
+    monitor = report.what_to_monitor or \
+        ["Watch for any change in the symptoms over the next 48–72 hours."]
 
     status_label = {
-        "healthy": "Healthy", "monitor": "Monitor",
-        "concern": "Concern", "urgent": "Urgent",
-    }.get(report.overall_status, report.overall_status.title())
+        "healthy": "healthy", "monitor": "concern",
+        "concern": "concern", "urgent": "critical",
+    }.get(report.overall_status, "concern")
+
+    severity_label = {
+        "low": "Mild", "moderate": "Moderate",
+        "high": "Severe", "uncertain": "Uncertain",
+    }.get(report.severity, "Uncertain")
 
     # Scientific name looks like "Tomato (Solanum lycopersicum)" -> split it
     plant_name, common_name, family = report.plant_name, "", ""
@@ -311,25 +332,22 @@ def report_to_frontend(report: PlantReport) -> dict:
     disclaimer_parts = list(report.limitations or [])
     if report.seasonal_context:
         disclaimer_parts.append(f"Seasonal note: {report.seasonal_context}")
-    disclaimer = ("A single photo can't confirm a diagnosis. "
-                  + " ".join(disclaimer_parts)).strip() or \
+    disclaimer = (" ".join(disclaimer_parts)).strip() or \
         "A single photo can't confirm a diagnosis. When unsure, ask a local plant expert."
 
     return {
-        "plant": plant_name,
-        "commonName": common_name,
-        "family": family,
+        "plant": {"name": plant_name, "commonName": common_name, "family": family},
         "status": status_label,
         "certainty": CONF_TO_PCT.get(
             report.possible_causes[0].confidence if report.possible_causes else None,
             90 if report.overall_status == "healthy" else 40,
         ),
-        "severity": report.severity.title(),
+        "severity": severity_label,
         "reversibility": SEVERITY_TO_REVERSIBILITY.get(report.severity, "Unknown"),
         "observations": observations,
         "causes": causes,
         "actions": actions,
-        "monitor": report.what_to_monitor,
+        "monitor": monitor,
         "disclaimer": disclaimer,
     }
 
@@ -410,8 +428,11 @@ Analyze this plant photo and return a structured report adhering strictly to the
         except Exception as exc:
             last_error = exc
             err_str = str(exc)
-            # If rate limit (429) or high demand (503), try next available candidate model
-            if ("429" in err_str or "503" in err_str or "RESOURCE_EXHAUSTED" in err_str or "UNAVAILABLE" in err_str):
+            # If rate limit (429), high demand (503), or gemma's sporadic
+            # internal error (500), try the next candidate model
+            if ("429" in err_str or "503" in err_str or "500" in err_str
+                    or "RESOURCE_EXHAUSTED" in err_str or "UNAVAILABLE" in err_str
+                    or "INTERNAL" in err_str):
                 print(f"Warning: Model {m} hit rate limit / busy ({err_str[:60]}), trying next candidate model...")
                 continue
             raise

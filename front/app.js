@@ -3,7 +3,7 @@
      image, plantName, climate, stage, symptoms (comma list), notes
    and expects JSON shaped like DEMO_RESULT below.
    While API_URL is empty, the page shows demo results so you can test the flow. */
-const API_URL = "";
+const API_URL = "/api/plant";
 
 const STATUS_STEPS = ["Examining leaf patterns & chlorosis…", "Checking spots and lesions…", "Comparing against known plant problems…", "Ranking likely causes…"];
 const MAX_BYTES = 20 * 1024 * 1024;
@@ -35,8 +35,8 @@ const DEMO_RESULT = {
 };
 
 const STATUS = {
-  healthy:  { label: "Healthy",  badge: "bg-secondary-container text-on-secondary-container border-secondary/20", dot: "bg-secondary" },
-  concern:  { label: "Concern",  badge: "bg-tertiary-fixed text-tertiary-container border-tertiary/20", dot: "bg-tertiary" },
+  healthy: { label: "Healthy", badge: "bg-secondary-container text-on-secondary-container border-secondary/20", dot: "bg-secondary" },
+  concern: { label: "Concern", badge: "bg-tertiary-fixed text-tertiary-container border-tertiary/20", dot: "bg-tertiary" },
   critical: { label: "Critical", badge: "bg-error-container text-error border-error/20", dot: "bg-error" }
 };
 
@@ -53,8 +53,49 @@ function validateResult(r) {
   return "";
 }
 
+/* Accept either our frontend shape or the raw backend PlantReport schema
+   (plantdoc/main.py --out dumps) and return the frontend shape.
+   Frontend-shape payloads pass through untouched. */
+function normalizeResult(r) {
+  if (!r || typeof r !== "object") return r;
+  const obs0 = Array.isArray(r.observations) ? r.observations[0] : null;
+  const isBackend = typeof r.plant_name === "string" ||
+    (obs0 && typeof obs0 === "object" && !("title" in obs0));
+  if (!isBackend) return r;                       // already the frontend shape
+  const confPct = { high: 88, medium: 55, low: 25 };
+  let plant = { name: "", commonName: "", family: "" };
+  if (typeof r.plant_name === "string") {
+    const m = r.plant_name.match(/^(.*?)\s*\(([^)]+)\)\s*$/);
+    if (m) { plant.name = m[1].trim(); const parts = m[2].split(",").map(s => s.trim()); plant.commonName = parts[0] || ""; plant.family = parts[1] || ""; }
+    else plant.name = r.plant_name;
+  } else if (r.plant && typeof r.plant === "object") {
+    plant = { name: r.plant.name || "", commonName: r.plant.commonName || "", family: r.plant.family || "" };
+  }
+  const statusMap = { healthy: "healthy", monitor: "concern", concern: "concern", urgent: "critical" };
+  const conf = r.possible_causes && r.possible_causes[0] ? confPct[r.possible_causes[0].confidence] || 40 : (r.overall_status === "healthy" ? 90 : 40);
+  return {
+    plant,
+    status: statusMap[r.overall_status] || (r.status || "concern"),
+    certainty: typeof r.certainty === "number" ? r.certainty : conf,
+    severity: (r.severity || "uncertain").replace(/^./, ch => ch.toUpperCase()),
+    reversibility: r.reversibility || "Depends on cause",
+    observations: (r.observations || []).map(o => ({
+      title: o.symptom || o.title || "",
+      detail: [o.location, o.evidence].filter(Boolean).join(" — ") || o.detail || ""
+    })),
+    causes: (r.possible_causes || r.causes || []).map((c, i) => ({
+      name: c.name, confidence: typeof c.confidence === "number" ? c.confidence : confPct[c.confidence] || 30,
+      description: c.reason || c.description || "",
+      ...(i === 0 ? { note: "Most likely driver of the observed symptoms" } : {})
+    })),
+    actions: (r.recommended_actions || r.actions || []).map(a => ({ title: a.action || a.title, detail: a.reason || a.detail || "" })),
+    monitor: r.what_to_monitor || r.monitor || [],
+    disclaimer: (r.limitations || []).join(" ") || r.disclaimer || ""
+  };
+}
+
 const $ = id => document.getElementById(id);
-const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 const state = { file: null, url: null, dims: "", session: "", timer: null, run: 0 };
 
 function show(name) {
@@ -96,7 +137,7 @@ function makeSample() {
   x.fillStyle = "#2e7d32"; x.beginPath(); x.moveTo(400, 80); x.bezierCurveTo(780, 260, 760, 760, 400, 930); x.bezierCurveTo(40, 760, 20, 260, 400, 80); x.fill();
   x.strokeStyle = "#cfd96b"; x.lineWidth = 26; x.stroke();
   x.strokeStyle = "#1b5e20"; x.lineWidth = 6; x.beginPath(); x.moveTo(400, 100); x.lineTo(400, 920); x.stroke();
-  x.fillStyle = "#6b4a2f"; [[250, 350, 22], [560, 460, 28], [330, 640, 18], [520, 700, 24]].forEach(([a, b, r]) => { x.beginPath(); x.arc(a, b, r, 0, 7); x.fill(); });
+  x.fillStyle = "#6b4a2f";[[250, 350, 22], [560, 460, 28], [330, 640, 18], [520, 700, 24]].forEach(([a, b, r]) => { x.beginPath(); x.arc(a, b, r, 0, 7); x.fill(); });
   c.toBlob(b => setFile(new File([b], "sample-leaf.jpg", { type: "image/jpeg" })), "image/jpeg", 0.9);
 }
 
@@ -238,7 +279,7 @@ function renderReport(r) {
 $("json-file").addEventListener("change", async e => {
   const f = e.target.files[0]; if (!f) return;
   try {
-    const data = JSON.parse(await f.text());
+    const data = normalizeResult(JSON.parse(await f.text()));
     const problem = validateResult(data);
     if (problem) throw new Error(problem);
     fileError(""); renderReport(data); show("report");

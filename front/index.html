@@ -69,13 +69,15 @@
               Private &amp; Secure Analysis
             </span>
 </div>
-<!-- Sample Link for quick testing -->
-<div class="mt-4 pt-4 border-t border-outline-variant/30 w-full flex items-center justify-center">
+</div>
+<!-- Sample link for quick testing — kept OUTSIDE the dropzone: interactive
+     elements must not be nested inside each other (and a click here must
+     never bubble into the dropzone's file dialog) -->
+<div class="mt-4 w-full flex items-center justify-center">
 <button id="sample" class="text-primary hover:text-primary-container font-label-md text-label-md underline underline-offset-4 flex items-center gap-1 transition-colors" type="button">
 <span class="material-symbols-outlined text-[16px]" data-icon="experiment">experiment</span>
               Looking to test? Use a sample leaf photo
             </button>
-</div>
 </div>
 <div id="preview" class="bg-surface-container-lowest border border-outline-variant/40 rounded-xl p-space-lg custom-botanical-shadow flex items-center justify-between gap-space-md" hidden>
 <div class="flex items-center gap-space-md min-w-0">
