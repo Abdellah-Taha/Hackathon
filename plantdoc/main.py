@@ -50,6 +50,89 @@ class PossibleCause(BaseModel):
     reason: str = Field(description="Explanation connecting the visible observations to this plausible cause")
 
 
+# ----------------------------------------------------------------------------
+# 1b. CATEGORY-SPECIFIC INFO BLOCKS (the fields vary per plant type)
+# ----------------------------------------------------------------------------
+
+class VegetableInfo(BaseModel):
+    """Extra profile returned when plant_category == 'vegetable'."""
+    info_type: Literal["vegetable_info"] = "vegetable_info"
+    edible_part: str = Field(description="Which part is eaten, e.g. 'fruit (berries)', 'roots', 'leaves'")
+    planting_season: str = Field(description="Typical sowing/planting season, or 'Unknown'")
+    days_to_harvest: Optional[int] = Field(default=None, description="Approximate days from planting to first harvest, or null if unknown")
+    harvest_window: str = Field(description="How to tell it is ready and how to harvest it")
+    companion_plants: List[str] = Field(default_factory=list, description="Beneficial companion plants (empty if unsure)")
+    common_issues: List[str] = Field(default_factory=list, description="Problems this vegetable is prone to, not necessarily visible in this photo")
+    watering_need: str = Field(description="Typical watering need, e.g. '2.5-5 cm of water per week'")
+    sunlight_need: str = Field(description="Typical sun exposure, e.g. 'full sun (6-8 h)'")
+
+
+class FruitInfo(BaseModel):
+    """Extra profile returned when plant_category == 'fruit'."""
+    info_type: Literal["fruit_info"] = "fruit_info"
+    fruit_size_at_harvest: str = Field(description="Expected fruit size at maturity, e.g. '2-3 cm berries'")
+    ripening_signs: str = Field(description="Visible signs the fruit is ready to pick (colour, smell, ease of detachment)")
+    time_to_first_fruit: str = Field(description="Typical time from planting to first harvest, or 'Unknown'")
+    pollination: str = Field(description="Pollination needs: self-fertile, needs a partner, pollinators, etc.")
+    pruning_season: str = Field(description="When and how to prune, or 'Unknown'")
+    watering_need: str = Field(description="Typical watering need")
+    sunlight_need: str = Field(description="Typical sun exposure")
+    common_issues: List[str] = Field(default_factory=list, description="Problems this fruit plant is prone to, not necessarily visible here")
+
+
+class FlowerInfo(BaseModel):
+    """Extra profile returned when plant_category == 'flower'."""
+    info_type: Literal["flower_info"] = "flower_info"
+    bloom_season: str = Field(description="Main blooming season(s), or 'Unknown'")
+    bloom_cycle: str = Field(description="One flush per year, repeat-blooming, continuous, etc.")
+    deadheading: str = Field(description="Whether/how to remove spent blooms to encourage more flowers")
+    vase_life: Optional[str] = Field(default=None, description="Approximate vase life if used as cut flower, else null")
+    fertilizer: str = Field(description="Fertilizer advice for flowering, or 'Unknown'")
+    watering_need: str = Field(description="Typical watering need")
+    sunlight_need: str = Field(description="Typical sun exposure")
+    common_pests: List[str] = Field(default_factory=list, description="Pests this flower often attracts")
+
+
+class HouseplantInfo(BaseModel):
+    """Extra profile returned when plant_category == 'houseplant'."""
+    info_type: Literal["houseplant_info"] = "houseplant_info"
+    light_need: str = Field(description="Indoor light need, e.g. 'bright indirect light; avoid direct midday sun'")
+    humidity: str = Field(description="Preferred humidity level and whether misting/pebble trays help")
+    soil_mix: str = Field(description="Recommended potting mix, e.g. 'airy mix with perlite and bark'")
+    fertilizer: str = Field(description="Feeding schedule and dilution, or 'Unknown'")
+    repotting: str = Field(description="When and how to repot, or 'Unknown'")
+    toxicity_to_pets: str = Field(description="Toxicity to cats/dogs if known, e.g. 'toxic if ingested (calcium oxalates)'")
+
+
+class TreeShrubInfo(BaseModel):
+    """Extra profile returned when plant_category == 'tree_shrub'."""
+    info_type: Literal["tree_shrub_info"] = "tree_shrub_info"
+    mature_height: str = Field(description="Typical mature height, or 'Unknown'")
+    mature_spread: str = Field(description="Typical mature canopy/branch spread, or 'Unknown'")
+    hardiness: str = Field(description="Climate hardiness, e.g. 'USDA zones 9-11, frost sensitive'")
+    pruning_season: str = Field(description="When and how to prune, or 'Unknown'")
+    watering_need: str = Field(description="Typical watering need, including drought tolerance")
+    sunlight_need: str = Field(description="Typical sun exposure")
+    common_issues: List[str] = Field(default_factory=list, description="Issues this tree/shrub is prone to")
+
+
+class OtherInfo(BaseModel):
+    """Fallback profile for plants that are real but fit no category above."""
+    info_type: Literal["other_info"] = "other_info"
+    plant_type_guess: str = Field(description="Best short description of the plant type, e.g. 'succulent', 'fern', 'herb'")
+    notes: str = Field(description="Any care information worth knowing for this type of plant")
+
+
+CategoryInfo = Union[
+    VegetableInfo,
+    FruitInfo,
+    FlowerInfo,
+    HouseplantInfo,
+    TreeShrubInfo,
+    OtherInfo,
+]
+
+
 class RecommendedAction(BaseModel):
     priority: int = Field(description="Priority order (1 = immediate low-risk action, 2 = secondary)")
     action: str = Field(description="Specific, practical, low-risk care step (e.g. 'Isolate infected foliage', 'Improve bottom airflow')")
@@ -58,6 +141,19 @@ class RecommendedAction(BaseModel):
 
 class PlantReport(BaseModel):
     plant_name: str = Field(description="Best-supported identification of the plant or 'Unknown'")
+    plant_category: Literal[
+        "vegetable", "fruit", "flower", "houseplant", "tree_shrub", "unknown"
+    ] = Field(
+        description="Category of the plant in the photo; use 'unknown' when unsure"
+    )
+    category_info: Optional[CategoryInfo] = Field(
+        default=None,
+        description=(
+            "Type-specific profile: VegetableInfo for vegetables, FruitInfo for fruits, "
+            "FlowerInfo for flowers, HouseplantInfo for houseplants, TreeShrubInfo for "
+            "trees/shrubs, OtherInfo as fallback. REQUIRED unless plant_category is 'unknown'."
+        ),
+    )
     overall_status: Literal["healthy", "monitor", "concern", "urgent"] = Field(
         description="Overall health rating of the plant"
     )
@@ -131,8 +227,8 @@ def preprocess_image(image_input: Union[str, Path, Image.Image], max_side: int =
 # 3. AI PROMPT & INVOCATION
 # ============================================================================
 
-PROMPT_SYSTEM = """You are an experienced plant pathologist and horticultural diagnostician.
-Your goal is to inspect the attached plant photo and return an evidence-aware diagnosis report.
+PROMPT_SYSTEM = """You are a panel of plant pathologist, horticulturist and botanist experts.
+Inspect the attached plant photo and return an evidence-aware diagnosis report.
 
 CRITICAL RULES:
 1. Observe before diagnosing: List specific, visible symptoms (spots, yellowing, wilting, lesions, pests) with their locations.
@@ -140,6 +236,8 @@ CRITICAL RULES:
 3. Be honest about uncertainty: If the image is blurry, distant, or symptoms are ambiguous, explain this in 'limitations' and assign 'low' confidence.
 4. Avoid dangerous recommendations: Do not recommend toxic pesticides or drastic irreversible cuts based on a single photo. Prioritize safe, practical, low-risk cultural care.
 5. Provide 1 to 3 plausible causes ranked by likelihood.
+6. Set 'plant_category' to vegetable, fruit, flower, houseplant, tree_shrub, or unknown, then fill 'category_info' with the matching block: vegetable -> VegetableInfo, fruit -> FruitInfo, flower -> FlowerInfo, houseplant -> HouseplantInfo, tree_shrub -> TreeShrubInfo, any other real plant -> OtherInfo. If plant_category is 'unknown', omit 'category_info' entirely.
+7. 'category_info' carries general knowledge about that kind of plant (harvest, bloom, pollination, light, water...), NOT the photo-specific diagnosis. Base every 'observation' strictly on the image; never invent symptoms.
 """
 
 
@@ -150,7 +248,7 @@ def diagnose_plant_image(
     growth_stage: str = "",
     user_symptoms: str = "",
     api_key: Optional[str] = None,
-    model_name: str = "gemini-2.5-flash",
+    model_name: str = "gemini-3.8-flash",
 ) -> PlantReport:
     """Send plant image and context to Google Gemini with structured Pydantic output."""
     api_key = api_key or os.getenv("GEMINI_API_KEY")
@@ -225,6 +323,17 @@ def create_mock_report(plant_hint: str = "Tomato") -> PlantReport:
     """Return a realistic mock PlantReport conforming to the schema."""
     return PlantReport(
         plant_name=plant_hint or "Tomato (Solanum lycopersicum)",
+        plant_category="vegetable",
+        category_info=VegetableInfo(
+            edible_part="fruit (botanically a berry, eaten as a vegetable)",
+            planting_season="sow indoors 6-8 weeks before last frost; transplant after soil reaches 15°C",
+            days_to_harvest=80,
+            harvest_window="pick when fully colored and slightly soft; twist off with the calyx for storage life",
+            companion_plants=["Basil", "French marigold", "Chives", "Parsley"],
+            common_issues=["Early blight", "Septoria leaf spot", "Blossom end rot", "Tomato hornworm"],
+            watering_need="2.5-5 cm of water per week, consistently moist but never waterlogged",
+            sunlight_need="full sun, 6-8 hours daily",
+        ),
         overall_status="concern",
         severity="moderate",
         observations=[
@@ -309,6 +418,49 @@ def create_sample_leaf_image(output_path: Path) -> Path:
     return output_path
 
 
+def _category_info_rows(info) -> List[tuple]:
+    """Convert a category_info model to (label, value) rows for printing."""
+    labels = {
+        "info_type": None,  # hidden
+        "edible_part": "Edible part",
+        "planting_season": "Planting",
+        "days_to_harvest": "Days to harvest",
+        "harvest_window": "Harvest",
+        "companion_plants": "Companions",
+        "common_issues": "Common issues",
+        "watering_need": "Water",
+        "sunlight_need": "Sun",
+        "fruit_size_at_harvest": "Fruit size",
+        "ripening_signs": "Ripening signs",
+        "time_to_first_fruit": "First fruit",
+        "pollination": "Pollination",
+        "pruning_season": "Pruning",
+        "bloom_season": "Bloom season",
+        "bloom_cycle": "Bloom cycle",
+        "deadheading": "Deadheading",
+        "vase_life": "Vase life",
+        "fertilizer": "Fertilizer",
+        "common_pests": "Common pests",
+        "light_need": "Light",
+        "humidity": "Humidity",
+        "soil_mix": "Soil mix",
+        "repotting": "Repotting",
+        "toxicity_to_pets": "Pet safety",
+        "mature_height": "Mature height",
+        "mature_spread": "Mature spread",
+        "hardiness": "Hardiness",
+        "plant_type_guess": "Plant type",
+        "notes": "Notes",
+    }
+    rows = []
+    for field, value in info:
+        label = labels.get(field, field.replace("_", " ").title())
+        if label is None or value in (None, [], ""):
+            continue
+        rows.append((label, ", ".join(value) if isinstance(value, list) else str(value)))
+    return rows
+
+
 def print_report(report: PlantReport):
     """Pretty-print the structured report to the terminal."""
     status_emoji = {
@@ -323,6 +475,15 @@ def print_report(report: PlantReport):
     print("=" * 65)
     print(f"Overall Status : {status_emoji}")
     print(f"Severity       : {report.severity.upper()}")
+    print(f"Category       : {report.plant_category.replace('_', ' ').title()}")
+
+    # Type-specific info block (varies by plant_category)
+    info = report.category_info
+    if info is not None:
+        print(f"\n🌱 {report.plant_category.replace('_', ' ').upper()} PROFILE:")
+        for label, value in _category_info_rows(info):
+            print(f"  {label:<16}: {value}")
+
     if report.seasonal_context:
         print(f"Season Context : {report.seasonal_context}")
 
@@ -366,12 +527,13 @@ def main():
     parser.add_argument("--region", type=str, default="", help="Optional grower region (e.g. Mediterranean)")
     parser.add_argument("--mock", action="store_true", help="Run with mock AI response (no API key required)")
     parser.add_argument("--json", action="store_true", help="Output raw JSON instead of formatted text")
+    parser.add_argument("--out", type=str, default="", help="Optional path to save the JSON report (e.g. data.json)")
     args = parser.parse_args()
 
     # Image selection or creation
     image_path = args.image
     if not image_path:
-        sample_path = Path(__file__).resolve().parent / "sample_leaf.jpg"
+        sample_path = Path(__file__).resolve().parent / "images.jpg"
         if not sample_path.exists():
             create_sample_leaf_image(sample_path)
             print(f"Generated sample synthetic leaf image: {sample_path}")
@@ -390,7 +552,7 @@ def main():
             print("Set GEMINI_API_KEY in .env to use live Gemini AI models.\n")
             report = create_mock_report(plant_hint=args.plant or "Tomato")
         else:
-            print(f"Sending image to Gemini Vision AI (model: gemini-2.5-flash)...")
+            print(f"Sending image to Gemini Vision AI (model: gemini-3.8-flash)...")
             try:
                 report = diagnose_plant_image(
                     image_input=image_path,
@@ -402,8 +564,16 @@ def main():
                 print("Falling back to mock response for testing:")
                 report = create_mock_report(plant_hint=args.plant or "Tomato")
 
+    if args.out:
+        out_path = Path(args.out)
+        out_path.write_text(
+            json.dumps(report.model_dump(), indent=2, ensure_ascii=False),
+            encoding="utf-8",
+        )
+        print(f"JSON report saved to: {out_path}")
+
     if args.json:
-        print(json.dumps(report.model_dump(), indent=2))
+        print(json.dumps(report.model_dump(), indent=2, ensure_ascii=False))
     else:
         print_report(report)
 

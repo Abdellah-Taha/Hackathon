@@ -1,0 +1,75 @@
+{
+  "plant_name": "Lemon tree (Citrus limon)",
+  "plant_category": "tree_shrub",
+  "category_info": {
+    "info_type": "tree_shrub_info",
+    "mature_height": "3-6 m in the ground; 1.5-2.5 m in large containers",
+    "mature_spread": "2-4 m, similar to its height",
+    "hardiness": "frost sensitive; best in USDA zones 9-11 or as a container plant moved indoors in winter",
+    "pruning_season": "light pruning after harvest; remove suckers below the graft at any time",
+    "watering_need": "deep watering when the top 5 cm of soil is dry; citrus dislike both drought and soggy roots",
+    "sunlight_need": "full sun, 6-8 hours daily",
+    "common_issues": ["Citrus leaf miner", "Iron chlorosis (yellowing between veins)", "Aphids", "Root rot in poorly drained soil"]
+  },
+  "overall_status": "concern",
+  "severity": "moderate",
+  "observations": [
+    {
+      "symptom": "Interveinal chlorosis: yellow leaves with distinctly green veins",
+      "location": "Newest leaves at the branch tips",
+      "evidence": "Young leaves show bright yellow blades while the vein network remains dark green"
+    },
+    {
+      "symptom": "Curved silvery trails inside some leaves",
+      "location": "A few mid-canopy leaves",
+      "evidence": "Winding pale tunnels under the leaf surface are visible on close inspection"
+    }
+  ],
+  "possible_causes": [
+    {
+      "name": "Iron or zinc deficiency (likely high soil pH)",
+      "confidence": "high",
+      "reason": "Yellow young leaves with green veins on citrus are textbook micronutrient deficiency, usually caused by alkaline soil or overwatering blocking iron uptake"
+    },
+    {
+      "name": "Citrus leaf miner damage",
+      "confidence": "medium",
+      "reason": "Silvery serpentine mines in leaves are caused by leaf miner larvae; it is cosmetic but stresses young growth"
+    },
+    {
+      "name": "Overwatering contributing to nutrient lockout",
+      "confidence": "low",
+      "reason": "Chronically wet soil prevents roots from absorbing iron even when it is present"
+    }
+  ],
+  "recommended_actions": [
+    {
+      "priority": 1,
+      "action": "Check watering and drainage: let the top 5 cm of soil dry before deep watering",
+      "reason": "Restoring air in the root zone often fixes nutrient uptake without any fertilizer change"
+    },
+    {
+      "priority": 2,
+      "action": "Feed with a citrus-specific fertilizer containing micronutrients (chelated iron, zinc, manganese)",
+      "reason": "Citrus blends match the pH and micronutrient profile citrus needs"
+    },
+    {
+      "priority": 3,
+      "action": "Leave leaf-miner mines alone on mature trees; prune only heavily mined young shoots",
+      "reason": "The damage is mostly cosmetic and natural predators keep it in check"
+    }
+  ],
+  "seasonal_context": "Citrus flush new growth in spring and autumn; deficiencies show up exactly when young leaves demand the most iron.",
+  "what_to_monitor": [
+    "Whether the newest flush comes out green after feeding and drying adjustments",
+    "Yellowing spreading to older leaves, which would suggest a different cause"
+  ],
+  "limitations": [
+    "Soil pH cannot be measured from a photo; a soil test confirms the diagnosis",
+    "Nutrient deficiencies of iron, zinc and manganese look similar at this scale"
+  ],
+  "follow_up_questions": [
+    "Is the plant in the ground or a container, and what water do you use (tap, well, rain)?",
+    "When was it last fertilized, and with what product?"
+  ]
+}

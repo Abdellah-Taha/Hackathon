@@ -1,0 +1,81 @@
+{
+  "plant_name": "Monstera deliciosa",
+  "plant_category": "houseplant",
+  "category_info": {
+    "info_type": "houseplant_info",
+    "light_need": "Medium to bright indirect light; avoid prolonged harsh direct sunlight",
+    "humidity": "Moderate to high humidity (50-70% preferred); tolerates standard household humidity",
+    "soil_mix": "Chunky, well-draining aroid mix containing peat or coco coir, perlite, orchid bark, and pumice",
+    "fertilizer": "Balanced liquid houseplant fertilizer diluted to half strength monthly during active spring and summer growth",
+    "repotting": "Every 1-2 years during spring when roots become pot-bound or circle the container",
+    "toxicity_to_pets": "Toxic to cats and dogs if ingested due to insoluble calcium oxalate crystals"
+  },
+  "overall_status": "concern",
+  "severity": "high",
+  "observations": [
+    {
+      "symptom": "Extensive chlorosis (bright yellowing)",
+      "location": "Older and middle leaves, covering nearly the entire leaf lamina",
+      "evidence": "Multiple large fenestrated leaves and a smaller lower leaf are bright yellow, with only residual light green along select vein sectors"
+    },
+    {
+      "symptom": "Total leaf yellowing and senescence",
+      "location": "Small juvenile lower leaf",
+      "evidence": "A smaller, lower leaf beneath the large fenestrated leaf has turned completely pale yellow"
+    },
+    {
+      "symptom": "Coexisting healthy green foliage",
+      "location": "Other mature leaves lower and adjacent on the plant",
+      "evidence": "Green, fenestrated leaves remain relatively vibrant green in the lower-right area"
+    }
+  ],
+  "possible_causes": [
+    {
+      "name": "Overwatering and potential root rot",
+      "confidence": "high",
+      "reason": "Sudden, widespread uniform yellowing across multiple mature leaves in Monstera is most commonly caused by saturated soil suffocating the root system, preventing water and oxygen transport."
+    },
+    {
+      "name": "Severe nitrogen deficiency or nutrient depletion",
+      "confidence": "medium",
+      "reason": "Nitrogen is a mobile nutrient, so plants will withdraw nitrogen from older foliage to sustain new growth, causing uniform yellowing from older leaves upwards."
+    },
+    {
+      "name": "Acclimation or temperature shock",
+      "confidence": "low",
+      "reason": "Exposure to cold drafts, rapid environmental changes, or prolonged severe underwatering followed by heavy flooding can trigger rapid chlorosis and shedding of older leaves."
+    }
+  ],
+  "recommended_actions": [
+    {
+      "priority": 1,
+      "action": "Check soil moisture and root health",
+      "reason": "Carefully remove the plant or inspect the bottom drainage holes. Healthy roots should be firm and light-colored; brown, mushy, or foul-smelling roots indicate root rot."
+    },
+    {
+      "priority": 2,
+      "action": "Adjust watering practices",
+      "reason": "Allow the top 5 to 8 cm of soil to dry out between waterings, ensure the pot has functional drainage holes, and never let the container sit in standing runoff."
+    },
+    {
+      "priority": 3,
+      "action": "Prune completely depleted yellow leaves",
+      "reason": "Leaves that have lost almost all chlorophyll cannot photosynthesize effectively and consume plant energy. Removing them with clean shears will improve airflow and allow the plant to focus on healthy foliage."
+    }
+  ],
+  "seasonal_context": "During autumn and winter, houseplants require significantly less water due to lower light levels and slower metabolic activity, making them particularly vulnerable to overwatering.",
+  "what_to_monitor": [
+    "Spread of yellowing to remaining green leaves",
+    "Browning or darkening mushy spots at the base of petioles or stems",
+    "Foul odors emerging from the potting container"
+  ],
+  "limitations": [
+    "Soil moisture level, drainage condition, and root system are not visible in the photograph.",
+    "Pest presence on the undersides of the leaves (such as thrips or spider mites) cannot be ruled out at this resolution."
+  ],
+  "follow_up_questions": [
+    "How frequently do you water the plant, and does the pot have drainage holes?",
+    "Has the plant recently been exposed to cold air drafts, air conditioning, or moved to a new location?",
+    "When was the plant last repotted or fertilized?"
+  ]
+}

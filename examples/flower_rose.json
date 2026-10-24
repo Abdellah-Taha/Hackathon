@@ -1,0 +1,71 @@
+{
+  "plant_name": "Rose (Rosa sp.)",
+  "plant_category": "flower",
+  "category_info": {
+    "info_type": "flower_info",
+    "bloom_season": "late spring through autumn, peaking in early summer",
+    "bloom_cycle": "repeat-flowering in modern varieties; old garden roses often bloom once per year",
+    "deadheading": "cut spent blooms just above the first 5-leaflet leaf to encourage new flowering",
+    "vase_life": "5-10 days if cut in the morning at bud stage and placed in clean water",
+    "fertilizer": "balanced rose feed in spring after pruning, then after each flush; stop feeding 6 weeks before first frost",
+    "watering_need": "deep soak 2-3 times per week at the base; avoid overhead watering",
+    "sunlight_need": "full sun, minimum 6 hours daily",
+    "common_pests": ["Aphids", "Spider mites", "Thrips", "Rose sawfly larvae"]
+  },
+  "overall_status": "concern",
+  "severity": "moderate",
+  "observations": [
+    {
+      "symptom": "White powdery coating on young leaves and flower buds",
+      "location": "New growth at the shoot tips",
+      "evidence": "Dust-like white film spreading across the upper surface of the youngest leaves"
+    },
+    {
+      "symptom": "Slight leaf curling on affected shoots",
+      "location": "Same young foliage carrying the white film",
+      "evidence": "Leaf edges curl upward on the shoots where the coating is densest"
+    }
+  ],
+  "possible_causes": [
+    {
+      "name": "Powdery mildew (Podosphaera pannosa)",
+      "confidence": "high",
+      "reason": "White talc-like coating on young rose foliage and buds is the classic symptom of rose powdery mildew"
+    },
+    {
+      "name": "Early-stage botrytis on buds",
+      "confidence": "low",
+      "reason": "Bud damage can resemble mildew, but botrytis is usually grey-brown and mushy rather than powdery white"
+    }
+  ],
+  "recommended_actions": [
+    {
+      "priority": 1,
+      "action": "Improve airflow: space plants, thin crowded interior stems, and water at the base in the morning",
+      "reason": "Powdery mildew thrives on humid, still foliage; drier leaves slow it without chemicals"
+    },
+    {
+      "priority": 2,
+      "action": "Prune out the worst-affected tips and dispose of them in household waste",
+      "reason": "Removes the largest source of spores and encourages clean new shoots"
+    },
+    {
+      "priority": 3,
+      "action": "If it spreads despite the above, ask a nursery for a low-toxicity powdery-mildew option approved for roses",
+      "reason": "Local experts can suggest treatments suitable for your region and variety"
+    }
+  ],
+  "seasonal_context": "Mild dry days with humid nights favor mildew outbreaks in late spring and early summer.",
+  "what_to_monitor": [
+    "Whether new leaves emerge clean after airflow improves",
+    "Bud distortion or failed blooming on heavily coated stems"
+  ],
+  "limitations": [
+    "Powdery mildew species cannot be identified to rose variety from a photo",
+    "Other leaf coating look-alikes (e.g. pesticide residue) cannot be excluded without closer inspection"
+  ],
+  "follow_up_questions": [
+    "Are the plants crowded against a wall or under cover where air stagnates?",
+    "Have you noticed the white dust on any neighboring plants?"
+  ]
+}

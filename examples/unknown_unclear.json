@@ -1,0 +1,45 @@
+{
+  "plant_name": "Unknown",
+  "plant_category": "unknown",
+  "category_info": null,
+  "overall_status": "monitor",
+  "severity": "uncertain",
+  "observations": [
+    {
+      "symptom": "Blurred green foliage filling most of the frame",
+      "location": "Whole image",
+      "evidence": "The subject is out of focus and partially cropped, so leaf shape and surface detail are not visible"
+    }
+  ],
+  "possible_causes": [
+    {
+      "name": "Insufficient image detail to diagnose",
+      "confidence": "low",
+      "reason": "No lesion, discoloration or pest can be reliably distinguished at this blur level"
+    }
+  ],
+  "recommended_actions": [
+    {
+      "priority": 1,
+      "action": "Retake the photo in daylight, holding the camera 15-25 cm from one affected leaf",
+      "reason": "A sharp, well-lit close-up of a single leaf is what allows meaningful diagnosis"
+    },
+    {
+      "priority": 2,
+      "action": "Include one wide shot of the whole plant plus one close-up of the worst symptom",
+      "reason": "Context plus detail lets the report separate local symptoms from whole-plant stress"
+    }
+  ],
+  "seasonal_context": null,
+  "what_to_monitor": [
+    "Whether any symptom becomes visible enough to photograph clearly"
+  ],
+  "limitations": [
+    "The image is too blurred to identify the plant or assess its health",
+    "No category-specific information can be provided without identification"
+  ],
+  "follow_up_questions": [
+    "Do you know the plant's name or where it was bought?",
+    "Which part of the plant worries you most?"
+  ]
+}
