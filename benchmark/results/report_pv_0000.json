@@ -1,0 +1,77 @@
+{
+  "plant_name": "Apple (Malus domestica)",
+  "plant_category": "fruit",
+  "category_info": {
+    "info_type": "fruit_info",
+    "fruit_size_at_harvest": "6-9 cm in diameter depending on cultivar",
+    "ripening_signs": "Skin turns characteristic color, fruit easily separates when twisted upward, seeds inside turn dark brown",
+    "time_to_first_fruit": "2-5 years depending on rootstock",
+    "pollination": "Most cultivars require cross-pollination from a different compatible apple or crabapple cultivar blooming concurrently",
+    "pruning_season": "Late winter while dormant; optional light summer thinning for canopy airflow",
+    "watering_need": "Moderate; approx 2.5 cm of water per week for established trees, more during fruit sizing in dry periods",
+    "sunlight_need": "Full sun (6-8+ hours of direct sunlight daily)",
+    "common_issues": [
+      "Apple scab",
+      "Cedar apple rust",
+      "Powdery mildew",
+      "Fire blight",
+      "Codling moth"
+    ]
+  },
+  "overall_status": "concern",
+  "severity": "low",
+  "observations": [
+    {
+      "symptom": "Olive-brown to dark velvety lesions",
+      "location": "Upper leaf surface, centered along the primary midrib and secondary veins",
+      "evidence": "Faint, irregular dark olive-brown discolorations radiating along leaf veins"
+    },
+    {
+      "symptom": "Slight surface distortion and dulling",
+      "location": "Upper leaf lamina",
+      "evidence": "Subtle puckering and loss of uniform sheen where discoloration clusters"
+    }
+  ],
+  "possible_causes": [
+    {
+      "name": "Apple scab (Venturia inaequalis)",
+      "confidence": "high",
+      "reason": "The irregular, diffuse olive-green to dark brown velvety spots appearing along the main and secondary veins on the upper surface are hallmark early symptoms of Venturia inaequalis infection."
+    },
+    {
+      "name": "Early fungal leaf spot (e.g., Marssonina leaf blotch or Alternaria)",
+      "confidence": "low",
+      "reason": "Other foliar pathogens can initiate small dark lesions on apple foliage, though they typically form more circular necrotic spots rather than vein-associated velvety patches."
+    }
+  ],
+  "recommended_actions": [
+    {
+      "priority": 1,
+      "action": "Ensure overhead watering is avoided and water only at the soil line",
+      "reason": "Apple scab spores require prolonged leaf wetness to germinate and spread across the canopy."
+    },
+    {
+      "priority": 2,
+      "action": "Prune interior dense shoots during dry weather to increase canopy airflow and sun penetration",
+      "reason": "Good ventilation hastens leaf drying after rain, suppressing secondary spore proliferation."
+    },
+    {
+      "priority": 3,
+      "action": "Collect and destroy or compost fallen leaves thoroughly at the end of the season",
+      "reason": "Venturia inaequalis overwinters primarily in fallen infected foliage from which spring ascospores are released."
+    }
+  ],
+  "seasonal_context": "Apple scab primary infections typically occur during cool, wet spring weather when buds and young leaves are emerging.",
+  "what_to_monitor": [
+    "Expansion or darkening of lesions into distinct velvety, olive-black scabby patches",
+    "Similar dark scabby lesions appearing on developing fruit surfaces",
+    "Premature yellowing and leaf drop"
+  ],
+  "limitations": [
+    "Only a single excised leaf against an artificial background is visible, making whole-canopy incidence and fruit involvement impossible to assess directly."
+  ],
+  "follow_up_questions": [
+    "Are these spots present across the entire tree or isolated to a few leaves?",
+    "Has the region experienced prolonged rainy or humid conditions over the past 2-3 weeks?"
+  ]
+}

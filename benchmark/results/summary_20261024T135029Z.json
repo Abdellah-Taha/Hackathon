@@ -1,0 +1,228 @@
+{
+  "run": {
+    "mode": "live:gemini-3.8-flash",
+    "started_at_utc": "20261024T135029Z",
+    "finished_at_utc": "2026-10-24T14:07:23+00:00",
+    "items_requested": 10,
+    "items_scored": 4,
+    "items_failed": 6,
+    "ground_truth_file": "benchmark/plantvillage_ground_truth.json"
+  },
+  "aggregate": {
+    "verdict_accuracy_pct": 100.0,
+    "healthy_detected_pct": 100.0,
+    "disease_detected_pct": 100.0,
+    "host_identification_pct": 100.0,
+    "cause_hit_top3_pct": 100.0,
+    "category_accuracy_pct": 100.0,
+    "avg_latency_s": 182.5
+  },
+  "calibration": {
+    "high": {
+      "n": 4,
+      "cause_hit_pct": 100.0
+    }
+  },
+  "per_item": [
+    {
+      "id": "pv_0000",
+      "class_label": "Apple___Apple_scab",
+      "image": "images/00_157.jpg",
+      "latency_s": 186.8,
+      "ground_truth": {
+        "host": "Apple",
+        "disease": "Apple scab",
+        "is_healthy": false,
+        "plant_category_expected": "fruit"
+      },
+      "llm": {
+        "plant_name": "Apple (Malus domestica)",
+        "plant_category": "fruit",
+        "overall_status": "concern",
+        "severity": "low",
+        "top_causes": [
+          {
+            "name": "Apple scab (Venturia inaequalis)",
+            "confidence": "high"
+          },
+          {
+            "name": "Early fungal leaf spot (e.g., Marssonina leaf blotch or Alternaria)",
+            "confidence": "low"
+          }
+        ],
+        "top_confidence": "high"
+      },
+      "scores": {
+        "verdict_correct": true,
+        "healthy_when_healthy": false,
+        "diseased_when_diseased": true,
+        "host_correct": true,
+        "host_similarity": 0.38,
+        "cause_hit_top3": true,
+        "cause_best_match": "Apple scab (Venturia inaequalis)",
+        "cause_similarity": 1.0,
+        "category_correct": true,
+        "severity_matches_gt": false
+      }
+    },
+    {
+      "id": "pv_0006",
+      "class_label": "Apple___healthy",
+      "image": "images/03_1937.jpg",
+      "error": "503 UNAVAILABLE. {'error': {'code': 503, 'message': 'This model is currently experiencing high demand. Spikes in demand are usually temporary. Please try again later.', 'status': 'UNAVAILABLE'}}"
+    },
+    {
+      "id": "pv_0008",
+      "class_label": "Blueberry___healthy",
+      "image": "images/04_3546.jpg",
+      "latency_s": 216.3,
+      "ground_truth": {
+        "host": "Blueberry",
+        "disease": "healthy",
+        "is_healthy": true,
+        "plant_category_expected": "fruit"
+      },
+      "llm": {
+        "plant_name": "Blueberry (Vaccinium corymbosum)",
+        "plant_category": "fruit",
+        "overall_status": "healthy",
+        "severity": "low",
+        "top_causes": [
+          {
+            "name": "Healthy tissue",
+            "confidence": "high"
+          }
+        ],
+        "top_confidence": "high"
+      },
+      "scores": {
+        "verdict_correct": true,
+        "healthy_when_healthy": true,
+        "diseased_when_diseased": false,
+        "host_correct": true,
+        "host_similarity": 0.46,
+        "cause_hit_top3": true,
+        "cause_best_match": "Healthy tissue",
+        "cause_similarity": 1.0,
+        "category_correct": true,
+        "severity_matches_gt": true
+      }
+    },
+    {
+      "id": "pv_0010",
+      "class_label": "Cherry_(including_sour)___Powdery_mildew",
+      "image": "images/05_4936.jpg",
+      "error": "429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. "
+    },
+    {
+      "id": "pv_0012",
+      "class_label": "Cherry_(including_sour)___healthy",
+      "image": "images/06_5938.jpg",
+      "latency_s": 218.3,
+      "ground_truth": {
+        "host": "Cherry (including sour)",
+        "disease": "healthy",
+        "is_healthy": true,
+        "plant_category_expected": "fruit"
+      },
+      "llm": {
+        "plant_name": "Cherry (Prunus spp.)",
+        "plant_category": "fruit",
+        "overall_status": "healthy",
+        "severity": "low",
+        "top_causes": [
+          {
+            "name": "Healthy leaf tissue",
+            "confidence": "high"
+          },
+          {
+            "name": "Early mite feeding stippling",
+            "confidence": "low"
+          }
+        ],
+        "top_confidence": "high"
+      },
+      "scores": {
+        "verdict_correct": true,
+        "healthy_when_healthy": true,
+        "diseased_when_diseased": false,
+        "host_correct": true,
+        "host_similarity": 0.52,
+        "cause_hit_top3": true,
+        "cause_best_match": "Healthy leaf tissue",
+        "cause_similarity": 1.0,
+        "category_correct": true,
+        "severity_matches_gt": true
+      }
+    },
+    {
+      "id": "pv_0014",
+      "class_label": "Corn_(maize)___Cercospora_leaf_spot Gray_leaf_spot",
+      "image": "images/07_6707.jpg",
+      "latency_s": 108.7,
+      "ground_truth": {
+        "host": "Corn (maize)",
+        "disease": "Cercospora leaf spot Gray leaf spot",
+        "is_healthy": false,
+        "plant_category_expected": "vegetable"
+      },
+      "llm": {
+        "plant_name": "Corn (Zea mays)",
+        "plant_category": "vegetable",
+        "overall_status": "concern",
+        "severity": "high",
+        "top_causes": [
+          {
+            "name": "Gray Leaf Spot (Cercospora zeae-maydis)",
+            "confidence": "high"
+          },
+          {
+            "name": "Southern Corn Leaf Blight (Bipolaris maydis)",
+            "confidence": "medium"
+          },
+          {
+            "name": "Bacterial Stripe or Leaf Streak",
+            "confidence": "low"
+          }
+        ],
+        "top_confidence": "high"
+      },
+      "scores": {
+        "verdict_correct": true,
+        "healthy_when_healthy": false,
+        "diseased_when_diseased": true,
+        "host_correct": true,
+        "host_similarity": 0.47,
+        "cause_hit_top3": true,
+        "cause_best_match": "Gray Leaf Spot (Cercospora zeae-maydis)",
+        "cause_similarity": 1.0,
+        "category_correct": true,
+        "severity_matches_gt": true
+      }
+    },
+    {
+      "id": "pv_0020",
+      "class_label": "Corn_(maize)___healthy",
+      "image": "images/10_9559.jpg",
+      "error": "429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. "
+    },
+    {
+      "id": "pv_0022",
+      "class_label": "Grape___Black_rot",
+      "image": "images/11_10726.jpg",
+      "error": "429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. "
+    },
+    {
+      "id": "pv_0030",
+      "class_label": "Orange___Haunglongbing_(Citrus_greening)",
+      "image": "images/15_15869.jpg",
+      "error": "429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. "
+    },
+    {
+      "id": "pv_0032",
+      "class_label": "Peach___Bacterial_spot",
+      "image": "images/16_20574.jpg",
+      "error": "429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. "
+    }
+  ]
+}
