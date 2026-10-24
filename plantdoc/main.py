@@ -8,26 +8,19 @@ This module implements the core AI pipeline defined in plant_diag_plan.txt:
 """
 
 from __future__ import annotations
-from fastapi import FastAPI, File, Form, UploadFile, HTTPException
 import argparse
 import json
 import os
+import re
 import sys
 from pathlib import Path
 from typing import List, Literal, Optional, Union
-from fastapi.staticfiles import StaticFiles
+
 from dotenv import load_dotenv
+from fastapi import FastAPI, File, Form, HTTPException, UploadFile
+from fastapi.staticfiles import StaticFiles
 from PIL import Image, ImageDraw, ImageOps
 from pydantic import BaseModel, Field, ValidationError
-from fastapi import FastAPI
-
-app = FastAPI()
-
-app.mount(
-    "/",
-    StaticFiles(directory="front", html=True),
-    name="front"
-)
 
 
 # Ensure Windows PowerShell/cmd console handles Unicode/emojis cleanly
@@ -250,36 +243,119 @@ CRITICAL RULES:
 7. 'category_info' carries general knowledge about that kind of plant (harvest, bloom, pollination, light, water...), NOT the photo-specific diagnosis. Base every 'observation' strictly on the image; never invent symptoms.
 """
 
-@app.post("/api/plant")
-async def diagnose_plant_image(
-    image: UploadFile = File(...),
-    plant_hint: str = Form("", alias="plantName"),
-    region: str = Form("", alias="climate"),
-    growth_stage: str = Form("", alias="stage"),
-    user_symptoms: str = Form("", alias="symptoms"),
-    notes: str = Form(""),
+# ============================================================================
+# 3b. FASTAPI BRIDGE (frontend <-> Gemini pipeline)
+# ============================================================================
+
+# Model fallback chain: gemini-3.8-flash hit free-tier daily quota (20 req/day).
+# gemini-3.6-flash, gemini-3.5-flash, gemini-3.5-flash-lite, and gemini-3.1-flash-lite all have active quota.
+MODEL_NAME = os.getenv("GEMINI_MODEL", "gemini-3.6-flash")
+MODEL_CANDIDATES = [
+    MODEL_NAME,
+    "gemini-3.6-flash",
+    "gemini-3.5-flash",
+    "gemini-3.5-flash-lite",
+    "gemini-3.1-flash-lite",
+    "gemini-3.8-flash",
+]
+MODEL_CANDIDATES = list(dict.fromkeys(MODEL_CANDIDATES))
+
+app = FastAPI(
+    title="PlantCare AI",
+    description="AI plant health diagnosis: upload a photo, get a structured report.",
+    version="0.3.0",
+)
+
+CONF_TO_PCT = {"high": 88, "medium": 55, "low": 25}
+SEVERITY_TO_REVERSIBILITY = {
+    "low": "Likely reversible",
+    "moderate": "Depends on cause",
+    "high": "Act quickly to reverse",
+    "uncertain": "Assess after 48h",
+}
+
+
+def report_to_frontend(report: PlantReport) -> dict:
+    """Map our validated PlantReport to the JSON shape front/app.js renders.
+
+    front/app.js (renderReport) expects:
+      plant, commonName, family, status, certainty, severity, reversibility,
+      observations: [[title, detail], ...],
+      causes: [[title, pct, why, note], ...]   (pct = 0..100 int, ranked)
+      actions: [[title, detail], ...]          (first one = "Do this first")
+      monitor: [str, ...], disclaimer: str
+    """
+    causes = [
+        [c.name, CONF_TO_PCT.get(c.confidence, 30), c.reason,
+         "Most likely driver of the observed symptoms" if i == 0 else ""]
+        for i, c in enumerate(report.possible_causes)
+    ]
+    actions = [[a.action, a.reason] for a in
+               sorted(report.recommended_actions, key=lambda a: a.priority)]
+    observations = [[o.symptom, f"{o.location} — {o.evidence}"]
+                    for o in report.observations]
+
+    status_label = {
+        "healthy": "Healthy", "monitor": "Monitor",
+        "concern": "Concern", "urgent": "Urgent",
+    }.get(report.overall_status, report.overall_status.title())
+
+    # Scientific name looks like "Tomato (Solanum lycopersicum)" -> split it
+    plant_name, common_name, family = report.plant_name, "", ""
+    m = re.match(r"^(.*?)\s*\(([^)]+)\)\s*$", report.plant_name)
+    if m:
+        plant_name = m.group(1).strip()
+        parts = [p.strip() for p in m.group(2).split(",")]
+        common_name, family = parts[0], (parts[1] if len(parts) > 1 else "")
+
+    disclaimer_parts = list(report.limitations or [])
+    if report.seasonal_context:
+        disclaimer_parts.append(f"Seasonal note: {report.seasonal_context}")
+    disclaimer = ("A single photo can't confirm a diagnosis. "
+                  + " ".join(disclaimer_parts)).strip() or \
+        "A single photo can't confirm a diagnosis. When unsure, ask a local plant expert."
+
+    return {
+        "plant": plant_name,
+        "commonName": common_name,
+        "family": family,
+        "status": status_label,
+        "certainty": CONF_TO_PCT.get(
+            report.possible_causes[0].confidence if report.possible_causes else None,
+            90 if report.overall_status == "healthy" else 40,
+        ),
+        "severity": report.severity.title(),
+        "reversibility": SEVERITY_TO_REVERSIBILITY.get(report.severity, "Unknown"),
+        "observations": observations,
+        "causes": causes,
+        "actions": actions,
+        "monitor": report.what_to_monitor,
+        "disclaimer": disclaimer,
+    }
+
+
+def diagnose_plant_image(
+    image_input: Union[str, Path, Image.Image],
+    plant_hint: str = "",
+    region: str = "",
+    growth_stage: str = "",
+    user_symptoms: str = "",
+    notes: str = "",
+    api_key: Optional[str] = None,
+    model_name: Optional[str] = None,
 ) -> PlantReport:
-    """Receive an image and form data, then diagnose the plant."""
+    """Core pipeline: image + context -> Gemini -> validated PlantReport.
 
-    api_key = os.getenv("GEMINI_API_KEY")
+    Automatically iterates through candidate models if one encounters quota limits (429) or spikes (503).
+    """
+    api_key = api_key or os.getenv("GEMINI_API_KEY")
     if not api_key:
-        raise HTTPException(
-            status_code=500,
-            detail="GEMINI_API_KEY is not configured."
+        raise ValueError(
+            "GEMINI_API_KEY is not set. Set it in .env, or use mock mode."
         )
 
-    try:
-        image_input = Image.open(image.file).convert("RGB")
-    except Exception:
-        raise HTTPException(
-            status_code=400,
-            detail="Invalid image file."
-        )
-
-    # Preprocess image
     image = preprocess_image(image_input)
 
-    # Assemble contextual instructions
     context_lines = []
     if plant_hint:
         context_lines.append(f"- Suspected Plant Name: {plant_hint}")
@@ -289,6 +365,8 @@ async def diagnose_plant_image(
         context_lines.append(f"- Growth Stage: {growth_stage}")
     if user_symptoms:
         context_lines.append(f"- User-reported symptoms: {user_symptoms}")
+    if notes:
+        context_lines.append(f"- Extra notes from the grower: {notes}")
 
     context_str = ""
     if context_lines:
@@ -299,28 +377,111 @@ async def diagnose_plant_image(
 
 Analyze this plant photo and return a structured report adhering strictly to the schema."""
 
-    # Initialize client
-    client = genai.Client(api_key=api_key)
+    # Lazy import so the module (and mock mode/CLI) work without google-genai
+    try:
+        from google import genai
+        from google.genai import types
+    except ImportError:
+        raise ImportError(
+            "The 'google-genai' library is required. Install it using:\n"
+            "python -m pip install google-genai"
+        )
 
-    # Configure structured output matching our Pydantic schema
+    client = genai.Client(api_key=api_key)
     config = types.GenerateContentConfig(
         response_mime_type="application/json",
         response_schema=PlantReport,
         temperature=0.2,  # Low temperature for objective diagnosis
     )
 
-    # Call Gemini Multimodal
-    response = client.models.generate_content(
-        model=model_name,
-        contents=[image, user_prompt],
-        config=config,
-    )
+    models_to_try = [model_name] if model_name else list(MODEL_CANDIDATES)
+    last_error = None
 
-    if not response.text:
-        raise RuntimeError("Model returned an empty response.")
+    for m in models_to_try:
+        try:
+            response = client.models.generate_content(
+                model=m,
+                contents=[image, user_prompt],
+                config=config,
+            )
+            if not response.text:
+                raise RuntimeError(f"Model {m} returned an empty response.")
+            return PlantReport.model_validate_json(response.text)
+        except Exception as exc:
+            last_error = exc
+            err_str = str(exc)
+            # If rate limit (429) or high demand (503), try next available candidate model
+            if ("429" in err_str or "503" in err_str or "RESOURCE_EXHAUSTED" in err_str or "UNAVAILABLE" in err_str):
+                print(f"Warning: Model {m} hit rate limit / busy ({err_str[:60]}), trying next candidate model...")
+                continue
+            raise
 
-    # Validate and return Pydantic model
-    return PlantReport.model_validate_json(response.text)
+    if last_error:
+        raise last_error
+
+
+@app.post("/api/plant")
+async def api_diagnose_plant(
+    image: UploadFile = File(...),
+    plant_hint: str = Form("", alias="plantName"),
+    region: str = Form("", alias="climate"),
+    growth_stage: str = Form("", alias="stage"),
+    user_symptoms: str = Form("", alias="symptoms"),
+    notes: str = Form(""),
+    mock: bool = Form(False),
+) -> dict:
+    """Bridge endpoint: multipart form from front/app.js -> Gemini -> frontend JSON.
+
+    Send mock=true (form field) to get a valid sample report without any AI call —
+    lets the frontend team build/test while the quota is out or the model is down.
+    """
+    # Mock fast-path: no API key or quota needed
+    if mock or os.getenv("PLANTDOC_MOCK", "").lower() in ("1", "true", "yes"):
+        return report_to_frontend(create_mock_report(plant_hint=plant_hint))
+
+    try:
+        image_input = Image.open(image.file).convert("RGB")
+    except Exception:
+        raise HTTPException(status_code=400, detail="Invalid image file.")
+
+    # Core pipeline (same one the CLI and benchmark use)
+    try:
+        report = diagnose_plant_image(
+            image_input=image_input,
+            plant_hint=plant_hint,
+            region=region,
+            growth_stage=growth_stage,
+            user_symptoms=user_symptoms,
+            notes=notes,
+        )
+    except ValueError as exc:  # missing API key
+        raise HTTPException(status_code=500, detail=str(exc))
+    except ImportError as exc:
+        raise HTTPException(status_code=500, detail=str(exc))
+    except ValidationError as exc:  # model output violated our schema
+        raise HTTPException(status_code=502,
+                            detail=f"AI response failed schema validation: {str(exc)[:200]}")
+    except Exception as exc:
+        msg = str(exc)
+        if "429" in msg or "RESOURCE_EXHAUSTED" in msg:
+            # Fall back to preview report if all candidate models have exhausted their free quota
+            print("Notice: All Gemini models exhausted free-tier daily quota (429). Falling back to demo preview.")
+            mock_rep = create_mock_report(plant_hint=plant_hint)
+            res = report_to_frontend(mock_rep)
+            res["disclaimer"] = "⚠️ Notice: Daily free-tier AI quota reached (429). Showing diagnostic preview mode. " + res["disclaimer"]
+            return res
+        if "503" in msg or "unavailable" in msg.lower():
+            raise HTTPException(status_code=503,
+                                detail="AI service temporarily experiencing high demand — please retry.")
+        raise HTTPException(status_code=502, detail=f"AI request failed: {msg[:200]}")
+
+    return report_to_frontend(report)
+
+
+
+# Static frontend LAST so the catch-all mount cannot shadow /api/plant
+FRONT_DIR = Path(__file__).resolve().parent.parent / "front"
+app.mount("/", StaticFiles(directory=str(FRONT_DIR), html=True), name="front")
 
 
 # ============================================================================
@@ -560,7 +721,7 @@ def main():
             print("Set GEMINI_API_KEY in .env to use live Gemini AI models.\n")
             report = create_mock_report(plant_hint=args.plant or "Tomato")
         else:
-            print(f"Sending image to Gemini Vision AI (model: gemini-3.8-flash)...")
+            print(f"Sending image to Gemini Vision AI (model: {MODEL_NAME})...")
             try:
                 report = diagnose_plant_image(
                     image_input=image_path,

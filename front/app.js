@@ -96,7 +96,14 @@ async function requestDiagnosis() {
   fd.append("symptoms", [...state.chips].join(", "));
   fd.append("notes", $("notes").value.trim());
   const res = await fetch(API_URL, { method: "POST", body: fd });
-  if (!res.ok) throw new Error("The server returned an error (" + res.status + ").");
+  if (!res.ok) {
+    let detail = "";
+    try {
+      const errJson = await res.json();
+      detail = errJson.detail || "";
+    } catch (_) {}
+    throw new Error(detail || ("The server returned an error (" + res.status + ")."));
+  }
   return res.json();
 }
 
@@ -123,7 +130,7 @@ async function startDiagnosis() {
   } catch (err) {
     if (run !== state.run) return;
     clearInterval(state.timer); show("upload");
-    fileError("We couldn’t analyze that photo. " + (err.message || "") + " Check your connection and try again.");
+    fileError(err.message || "We couldn’t analyze that photo. Check your connection and try again.");
   }
 }
 function cancelDiagnosis() { state.run++; clearInterval(state.timer); show("upload"); }
@@ -162,7 +169,7 @@ function renderReport(r) {
       <div class="space-y-1">
         <div class="flex flex-wrap items-center gap-2.5"><h2 class="text-headline-md font-bold">${esc(name)}</h2>
           <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-label-md bg-tertiary-fixed text-tertiary-container border border-tertiary/20"><span class="w-1.5 h-1.5 rounded-full bg-tertiary"></span>${esc(r.status)}</span></div>
-        <p class="text-body-md text-on-surface-variant">${esc(r.commonName)} • ${esc(r.family)} family</p>
+        <p class="text-body-md text-on-surface-variant">${esc([r.commonName, r.family && r.family + " family"].filter(Boolean).join(" • "))}</p>
         <p class="text-label-sm text-primary font-semibold flex items-center gap-1"><span class="ms fill text-[15px]">verified</span>${esc(r.certainty)}% match certainty</p>
       </div>
     </div>
@@ -203,7 +210,9 @@ function renderReport(r) {
   $("another").onclick = () => { clearFile(); $("plant-name").value = $("notes").value = ""; state.chips.clear(); drawChips(); show("upload"); };
   $("followup").onclick = () => { show("upload"); setTimeout(() => $("notes").focus(), 300); };
   $("share").onclick = async () => {
-    const text = `${name}: ${r.causes[0][0]} (${r.certainty}% match). First step: ${r.actions[0][0]}.`;
+    const topCause = (r.causes[0] && r.causes[0][0]) || "unidentified issue";
+    const firstAction = (r.actions[0] && r.actions[0][0]) || "monitor the plant";
+    const text = `${name}: ${topCause} (${r.certainty}% match). First step: ${firstAction}.`;
     try {
       if (navigator.share) await navigator.share({ title: "PlantCare AI diagnosis", text });
       else { await navigator.clipboard.writeText(text); $("share-label").textContent = "Copied"; setTimeout(() => $("share-label").textContent = "Share", 1800); }
