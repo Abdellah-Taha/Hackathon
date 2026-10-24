@@ -3,7 +3,7 @@
      image, plantName, climate, stage, symptoms (comma list), notes
    and expects JSON shaped like DEMO_RESULT below.
    While API_URL is empty, the page shows demo results so you can test the flow. */
-const API_URL = "";
+const API_URL = "/api/plant";
 
 const SYMPTOMS = ["Yellow halo", "Crispy edges", "Brown spots", "Drooping stem", "White powdery residue"];
 const STATUS_STEPS = ["Checking leaf color and patterns", "Looking for spots and lesions", "Comparing against known plant problems", "Ranking likely causes"];

@@ -8,17 +8,27 @@ This module implements the core AI pipeline defined in plant_diag_plan.txt:
 """
 
 from __future__ import annotations
-
+from fastapi import FastAPI, File, Form, UploadFile, HTTPException
 import argparse
 import json
 import os
 import sys
 from pathlib import Path
 from typing import List, Literal, Optional, Union
-
+from fastapi.staticfiles import StaticFiles
 from dotenv import load_dotenv
 from PIL import Image, ImageDraw, ImageOps
 from pydantic import BaseModel, Field, ValidationError
+from fastapi import FastAPI
+
+app = FastAPI()
+
+app.mount(
+    "/",
+    StaticFiles(directory="front", html=True),
+    name="front"
+)
+
 
 # Ensure Windows PowerShell/cmd console handles Unicode/emojis cleanly
 if sys.platform == "win32" and hasattr(sys.stdout, "reconfigure"):
@@ -240,32 +250,30 @@ CRITICAL RULES:
 7. 'category_info' carries general knowledge about that kind of plant (harvest, bloom, pollination, light, water...), NOT the photo-specific diagnosis. Base every 'observation' strictly on the image; never invent symptoms.
 """
 
-
-def diagnose_plant_image(
-    image_input: Union[str, Path, Image.Image],
-    plant_hint: str = "",
-    region: str = "",
-    growth_stage: str = "",
-    user_symptoms: str = "",
-    api_key: Optional[str] = None,
-    model_name: str = "gemini-3.8-flash",
+@app.post("/api/plant")
+async def diagnose_plant_image(
+    image: UploadFile = File(...),
+    plant_hint: str = Form("", alias="plantName"),
+    region: str = Form("", alias="climate"),
+    growth_stage: str = Form("", alias="stage"),
+    user_symptoms: str = Form("", alias="symptoms"),
+    notes: str = Form(""),
 ) -> PlantReport:
-    """Send plant image and context to Google Gemini with structured Pydantic output."""
-    api_key = api_key or os.getenv("GEMINI_API_KEY")
+    """Receive an image and form data, then diagnose the plant."""
+
+    api_key = os.getenv("GEMINI_API_KEY")
     if not api_key:
-        raise ValueError(
-            "GEMINI_API_KEY is not set. Please set it in your environment or .env file, "
-            "or run with --mock to test the schema and pipeline without an API key."
+        raise HTTPException(
+            status_code=500,
+            detail="GEMINI_API_KEY is not configured."
         )
 
-    # Lazy import so prototype can still load mock mode even without google-genai
     try:
-        from google import genai
-        from google.genai import types
-    except ImportError:
-        raise ImportError(
-            "The 'google-genai' library is required. Install it using:\n"
-            "python -m pip install google-genai"
+        image_input = Image.open(image.file).convert("RGB")
+    except Exception:
+        raise HTTPException(
+            status_code=400,
+            detail="Invalid image file."
         )
 
     # Preprocess image
